@@ -44,7 +44,7 @@ response bodies or account data.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.0.2](https://github.com/semi-column/window-shopper/releases/tag/v0.0.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v0.0.1](https://github.com/semi-column/window-shopper/releases/tag/v0.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 Meesho&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
