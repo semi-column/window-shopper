@@ -19,6 +19,7 @@ Then patch your own copy of the app. This repo never ships patched APKs.
 After patching Meesho, open **Profile → Morphe**, just below Settings, to switch each feature on or off.
 The menu uses Meesho's native controls and typography; an account divider separates it from Settings.
 Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed in.
+The About section at the bottom shows the patches version and links to this repo.
 
 On new installs, ad and finance-promotion hiding, product-only ratings and telemetry blocking are
 on. Sorting and layout changes are off; bottom tabs keep Meesho's order. Saved choices are preserved.

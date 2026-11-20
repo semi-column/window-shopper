@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Canvas;
+import android.net.Uri;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
@@ -41,6 +42,7 @@ public final class SettingsUi {
     private static final int MUTED = 0xFF616173;
     private static final int BACKGROUND = 0xFFFAFAFA;
     private static final int PRIMARY = 0xFF9F2089;
+    private static final String REPO = "semi-column/window-shopper";
     private static final String[] CATEGORIES = {"Ads", "Ratings", "Layout", "Privacy"};
 
     private SettingsUi() {}
@@ -130,6 +132,8 @@ public final class SettingsUi {
             + "cached content may need a fresh response.", 13, MUTED, false);
         note.setPadding(dp(activity, 16), dp(activity, 8), dp(activity, 16), dp(activity, 16));
         preferences.addView(note);
+        preferences.addView(divider(activity));
+        preferences.addView(aboutRow(activity));
         apply.setOnClickListener(view -> {
             try {
                 activity.startActivity(Intent.makeRestartActivityTask(new ComponentName(
@@ -150,6 +154,34 @@ public final class SettingsUi {
         dialog.show();
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         root.requestApplyInsets();
+    }
+
+    private static View aboutRow(Activity activity) {
+        LinearLayout about = new LinearLayout(activity);
+        about.setOrientation(LinearLayout.VERTICAL);
+        about.setPadding(dp(activity, 16), dp(activity, 16), dp(activity, 16), dp(activity, 20));
+        about.setBackground(new RippleDrawable(ColorStateList.valueOf(0x149F2089),
+            new ColorDrawable(Color.WHITE), null));
+        TextView heading = text(activity, "About", 20, INK, true);
+        heading.setAccessibilityHeading(true);
+        about.addView(heading);
+        TextView name = text(activity, "Window Shopper patches v" + BuildConfig.PATCHES_VERSION, 17, INK, false);
+        name.setPadding(0, dp(activity, 12), 0, 0);
+        about.addView(name);
+        TextView link = text(activity, "github.com/" + REPO, 14, PRIMARY, false);
+        link.setPadding(0, dp(activity, 4), 0, 0);
+        about.addView(link);
+        TextView star = text(activity, "Enjoying it? Star the repo on GitHub to support the project.", 14, MUTED, false);
+        star.setPadding(0, dp(activity, 4), 0, 0);
+        about.addView(star);
+        about.setOnClickListener(view -> {
+            try {
+                activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/" + REPO)));
+            } catch (ActivityNotFoundException error) {
+                Toast.makeText(activity, "No browser found", Toast.LENGTH_SHORT).show();
+            }
+        });
+        return about;
     }
 
     private static View featureRow(Activity activity, Settings.Feature feature) throws ReflectiveOperationException {
