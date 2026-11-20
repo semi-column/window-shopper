@@ -1,3 +1,12 @@
+## [0.2.0](https://github.com/semi-column/window-shopper/compare/v0.1.0...v0.2.0) (2026-11-20)
+
+### ✨ New Features
+
+* add About section to Morphe menu ([79a0647](https://github.com/semi-column/window-shopper/commit/79a0647dca44a2576886cf502688d2507e2f5acf))
+* floating apply button, drop Loans tab toggle, rename to Tab bar ([ad6503e](https://github.com/semi-column/window-shopper/commit/ad6503eb4a61fe3e0f4268672486165556b77c88))
+* native Morphe menu, account divider and safer defaults ([447f689](https://github.com/semi-column/window-shopper/commit/447f689d2e84e5992043640978d4797732a9f97b))
+* settings import/export and About card ([a437236](https://github.com/semi-column/window-shopper/commit/a43723659fc5385437321263cb9dbc0c4d25326c))
+
 ## [0.1.0](https://github.com/semi-column/window-shopper/compare/v0.0.1...v0.1.0) (2026-11-20)
 
 ### ✨ New Features

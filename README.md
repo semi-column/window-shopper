@@ -56,9 +56,9 @@ response bodies or account data.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.1.0](https://github.com/semi-column/window-shopper/releases/tag/v0.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v0.2.0](https://github.com/semi-column/window-shopper/releases/tag/v0.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
-<summary>📦 Meesho&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
+<summary>📦 Meesho&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
 
 **Package name:** `com.meesho.supply`
@@ -71,9 +71,8 @@ response bodies or account data.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Block analytics and telemetry](#block-analytics-and-telemetry) | Answers Meesho event and SDK logging calls locally, skips the SMS inbox upload worker, and opts out of AppsFlyer, Facebook and Firebase analytics. |  |
-| [Customize bottom tabs](#customize-bottom-tabs) | Adds settings to pick and reorder up to 5 bottom tabs, including Account, and to hide Account in the home header. |  |
-| [Hide Pay Later navigation tab](#hide-pay-later-navigation-tab) | Prevents Pay Later from taking the fourth navigation slot without disabling its payment services. |  |
-| [Hide Pay Later secondary price](#hide-pay-later-secondary-price) | Hides the Pay Later secondary price on discovery listings without changing the primary price or checkout. |  |
+| [Customize tab bar](#customize-tab-bar) | Adds settings to pick and reorder up to 5 tab bar tabs, including Account, and to hide Account in the home header. |  |
+| [Hide Pay Later secondary price](#hide-pay-later-secondary-price) | Hides the Pay Later secondary price on listings and the Pay next month banner on product pages without changing the primary price or checkout. |  |
 | [Hide Refer and Earn](#hide-refer-and-earn) | Removes Refer and Earn from the home header and account screen. |  |
 | [Hide loan and Pay Later profile entries](#hide-loan-and-pay-later-profile-entries) | Removes the three finance entries from the account list without changing repayment or checkout. |  |
 | [Hide recommendation trays](#hide-recommendation-trays) | Removes the Gold Premium Quality, You may also like and related category rows from search, the recently viewed category shelf from home, and stops Similar Products rows in search, category pages and the home feed. |  |
