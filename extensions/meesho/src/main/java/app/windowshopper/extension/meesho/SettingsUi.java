@@ -22,6 +22,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -218,45 +219,81 @@ public final class SettingsUi {
         LinearLayout list = new LinearLayout(activity);
         list.setOrientation(LinearLayout.VERTICAL);
         list.setPadding(dp(activity, 8), dp(activity, 8), dp(activity, 8), 0);
-        Runnable[] render = new Runnable[1];
-        render[0] = () -> {
-            list.removeAllViews();
-            for (int i = 0; i < order.size(); i++) {
-                String tab = order.get(i);
-                int index = i;
-                LinearLayout row = new LinearLayout(activity);
-                row.setGravity(Gravity.CENTER_VERTICAL);
-                CheckBox box = new CheckBox(activity);
-                box.setText(known.get(tab));
-                box.setTextSize(16);
-                box.setChecked(picked.contains(tab));
-                box.setOnCheckedChangeListener((view, checked) -> {
-                    if (checked && picked.size() >= NavTabs.MAX) {
-                        view.setChecked(false);
-                        Toast.makeText(activity, "Up to 5 tabs", Toast.LENGTH_SHORT).show();
-                    } else if (checked) picked.add(tab);
-                    else picked.remove(tab);
-                });
-                row.addView(box, new LinearLayout.LayoutParams(0, dp(activity, 48), 1));
-                row.addView(moveButton(activity, "↑", "Move " + known.get(tab) + " up", index > 0, () -> {
-                    order.add(index - 1, order.remove(index));
-                    render[0].run();
-                }));
-                row.addView(moveButton(activity, "↓", "Move " + known.get(tab) + " down", index < order.size() - 1, () -> {
-                    order.add(index + 1, order.remove(index));
-                    render[0].run();
-                }));
-                list.addView(row);
-            }
-        };
-        render[0].run();
+        for (String tab : order) {
+            LinearLayout row = new LinearLayout(activity);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setTag(tab);
+            CheckBox box = new CheckBox(activity);
+            box.setText(known.get(tab));
+            box.setTextSize(16);
+            box.setChecked(picked.contains(tab));
+            box.setOnCheckedChangeListener((view, checked) -> {
+                if (checked && picked.size() >= NavTabs.MAX) {
+                    view.setChecked(false);
+                    Toast.makeText(activity, "Up to 5 tabs", Toast.LENGTH_SHORT).show();
+                } else if (checked) picked.add(tab);
+                else picked.remove(tab);
+            });
+            row.addView(box, new LinearLayout.LayoutParams(0, dp(activity, 48), 1));
+            TextView handle = text(activity, "≡", 24, MUTED, false);
+            handle.setGravity(Gravity.CENTER);
+            handle.setContentDescription("Reorder " + known.get(tab));
+            handle.setOnTouchListener((view, event) -> {
+                switch (event.getActionMasked()) {
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        list.requestDisallowInterceptTouchEvent(true);
+                        row.setAlpha(0.6f);
+                        return true;
+                    case android.view.MotionEvent.ACTION_MOVE:
+                        float y = row.getTop() + row.getHeight() / 2f + event.getY() - view.getHeight() / 2f;
+                        for (int i = 0; i < list.getChildCount(); i++) {
+                            View other = list.getChildAt(i);
+                            if (other != row && y > other.getTop() && y < other.getBottom()) {
+                                // Move the neighbour, not the touched row: removing it would cancel this drag.
+                                int from = list.indexOfChild(row);
+                                list.removeView(other);
+                                list.addView(other, from);
+                                break;
+                            }
+                        }
+                        return true;
+                    case android.view.MotionEvent.ACTION_UP:
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        row.setAlpha(1f);
+                        return true;
+                    default:
+                        return false;
+                }
+            });
+            // Screen-reader alternative to dragging.
+            handle.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    info.addAction(new AccessibilityNodeInfo.AccessibilityAction(1, "Move up"));
+                    info.addAction(new AccessibilityNodeInfo.AccessibilityAction(2, "Move down"));
+                }
+                public boolean performAccessibilityAction(View host, int action, android.os.Bundle args) {
+                    if (action != 1 && action != 2) return super.performAccessibilityAction(host, action, args);
+                    int to = list.indexOfChild(row) + (action == 1 ? -1 : 1);
+                    if (to < 0 || to >= list.getChildCount()) return false;
+                    list.removeView(row);
+                    list.addView(row, to);
+                    return true;
+                }
+            });
+            row.addView(handle, new LinearLayout.LayoutParams(dp(activity, 48), dp(activity, 48)));
+            list.addView(row);
+        }
         new AlertDialog.Builder(activity)
             .setTitle("Bottom tabs")
-            .setMessage("Choose up to 5 tabs. Order is left to right.")
+            .setMessage("Choose up to 5 tabs. Drag ≡ to reorder, top is leftmost.")
             .setView(list)
             .setPositiveButton("Save", (dialog, which) -> {
                 List<String> tabs = new ArrayList<>();
-                for (String tab : order) if (picked.contains(tab)) tabs.add(tab);
+                for (int i = 0; i < list.getChildCount(); i++) {
+                    String tab = (String) list.getChildAt(i).getTag();
+                    if (picked.contains(tab)) tabs.add(tab);
+                }
                 if (tabs.isEmpty() || !Settings.saveTabs(tabs)) {
                     Toast.makeText(activity, "Select at least one tab", Toast.LENGTH_LONG).show();
                 }
@@ -265,16 +302,6 @@ public final class SettingsUi {
             .setNeutralButton("Default", (dialog, which) -> { Settings.saveTabs(new ArrayList<>()); done.run(); })
             .setNegativeButton("Cancel", null)
             .show();
-    }
-
-    private static View moveButton(Activity activity, String label, String description, boolean enabled, Runnable move) {
-        TextView button = text(activity, label, 20, enabled ? PRIMARY : 0x6143474E, false);
-        button.setGravity(Gravity.CENTER);
-        button.setContentDescription(description);
-        button.setEnabled(enabled);
-        button.setLayoutParams(new LinearLayout.LayoutParams(dp(activity, 48), dp(activity, 48)));
-        button.setOnClickListener(view -> move.run());
-        return button;
     }
 
     private static TextView text(Activity activity, String value, int size, int color, boolean bold) {
