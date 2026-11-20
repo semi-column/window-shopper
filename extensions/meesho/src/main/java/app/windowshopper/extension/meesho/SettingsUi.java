@@ -27,6 +27,7 @@ import android.view.Window;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -100,7 +101,30 @@ public final class SettingsUi {
         preferences.setOrientation(LinearLayout.VERTICAL);
         preferences.setPadding(0, 0, 0, dp(activity, 16));
         scroll.addView(preferences);
-        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+        FrameLayout body = new FrameLayout(activity);
+        body.addView(scroll);
+        TextView apply = text(activity, "Apply & reopen Meesho", 16, Color.WHITE, false);
+        apply.setGravity(Gravity.CENTER);
+        apply.setPadding(dp(activity, 24), 0, dp(activity, 24), 0);
+        GradientDrawable pill = new GradientDrawable();
+        pill.setColor(PRIMARY);
+        pill.setCornerRadius(dp(activity, 28));
+        apply.setBackground(new RippleDrawable(ColorStateList.valueOf(0x33FFFFFF), pill, null));
+        apply.setElevation(dp(activity, 6));
+        apply.setVisibility(View.GONE);
+        FrameLayout.LayoutParams applyParams = new FrameLayout.LayoutParams(-2, dp(activity, 56),
+            Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        applyParams.bottomMargin = dp(activity, 24);
+        body.addView(apply, applyParams);
+        root.addView(body, new LinearLayout.LayoutParams(-1, 0, 1));
+        Runnable changed = () -> {
+            if (apply.getVisibility() == View.VISIBLE) return;
+            preferences.setPadding(0, 0, 0, dp(activity, 104));
+            apply.setVisibility(View.VISIBLE);
+            apply.setAlpha(0f);
+            apply.setTranslationY(dp(activity, 24));
+            apply.animate().alpha(1f).translationY(0f).setDuration(200).start();
+        };
 
         for (int category = 0; category < CATEGORIES.length; category++) {
             TextView heading = text(activity, CATEGORIES[category], 20, INK, true);
@@ -109,27 +133,15 @@ public final class SettingsUi {
             heading.setAccessibilityHeading(true);
             preferences.addView(heading);
             for (Settings.Feature feature : Settings.Feature.values()) {
-                if (feature.category == category) preferences.addView(featureRow(activity, feature));
+                if (feature.category == category) preferences.addView(featureRow(activity, feature, changed));
             }
-            if (category == 2) preferences.addView(tabsRow(activity));
+            if (category == 2) preferences.addView(tabsRow(activity, changed));
             preferences.addView(divider(activity));
         }
 
-        LinearLayout apply = new LinearLayout(activity);
-        apply.setOrientation(LinearLayout.VERTICAL);
-        apply.setPadding(dp(activity, 16), dp(activity, 20), dp(activity, 16), dp(activity, 20));
-        apply.setMinimumHeight(dp(activity, 64));
-        apply.setBackground(new RippleDrawable(ColorStateList.valueOf(0x149F2089),
-            new ColorDrawable(Color.WHITE), null));
-        apply.addView(text(activity, "Apply & reopen Meesho", 16, PRIMARY, false));
-        TextView applySummary = text(activity, "Rebuild navigation and profile. Your sign-in is kept.",
-            14, MUTED, false);
-        applySummary.setPadding(0, dp(activity, 4), 0, 0);
-        apply.addView(applySummary);
-        preferences.addView(apply, new LinearLayout.LayoutParams(-1, -2));
         TextView note = text(activity,
-            "Settings are saved automatically. Reload results after changing filters; "
-            + "cached content may need a fresh response.", 13, MUTED, false);
+            "Settings are saved automatically. Apply & reopen Meesho appears after a change; "
+            + "it rebuilds navigation and keeps your sign-in.", 13, MUTED, false);
         note.setPadding(dp(activity, 16), dp(activity, 8), dp(activity, 16), dp(activity, 16));
         preferences.addView(note);
         preferences.addView(divider(activity));
@@ -184,7 +196,7 @@ public final class SettingsUi {
         return about;
     }
 
-    private static View featureRow(Activity activity, Settings.Feature feature) throws ReflectiveOperationException {
+    private static View featureRow(Activity activity, Settings.Feature feature, Runnable changed) throws ReflectiveOperationException {
         boolean available = feature.available();
         LinearLayout row = new LinearLayout(activity);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -214,6 +226,7 @@ public final class SettingsUi {
                 Toast.makeText(activity, "Could not save setting; it may reset after restart",
                     Toast.LENGTH_LONG).show();
             }
+            changed.run();
         });
         row.addView(toggle);
         row.setOnClickListener(view -> { if (available) toggle.setChecked(!toggle.isChecked()); });
@@ -221,7 +234,7 @@ public final class SettingsUi {
         return row;
     }
 
-    private static View tabsRow(Activity activity) {
+    private static View tabsRow(Activity activity, Runnable changed) {
         boolean available = Unclutter.hideNavTabs();
         LinearLayout row = new LinearLayout(activity);
         row.setOrientation(LinearLayout.VERTICAL);
@@ -229,7 +242,7 @@ public final class SettingsUi {
         row.setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12));
         row.setBackground(new RippleDrawable(ColorStateList.valueOf(0x149F2089),
             new ColorDrawable(Color.WHITE), null));
-        row.addView(text(activity, "Bottom tabs", 17, INK, false));
+        row.addView(text(activity, "Tab bar", 17, INK, false));
         TextView detail = text(activity, "", 14, MUTED, false);
         detail.setPadding(0, dp(activity, 4), 0, 0);
         row.addView(detail);
@@ -242,7 +255,7 @@ public final class SettingsUi {
                 : String.join(" · ", names));
         };
         refresh.run();
-        row.setOnClickListener(view -> { if (available) tabsDialog(activity, refresh); });
+        row.setOnClickListener(view -> { if (available) tabsDialog(activity, () -> { refresh.run(); changed.run(); }); });
         if (!available) row.setAlpha(0.55f);
         return row;
     }
@@ -332,7 +345,7 @@ public final class SettingsUi {
             list.addView(row);
         }
         new AlertDialog.Builder(activity)
-            .setTitle("Bottom tabs")
+            .setTitle("Tab bar")
             .setMessage("Choose up to 5 tabs. Drag ≡ to reorder, top is leftmost.")
             .setView(list)
             .setPositiveButton("Save", (dialog, which) -> {

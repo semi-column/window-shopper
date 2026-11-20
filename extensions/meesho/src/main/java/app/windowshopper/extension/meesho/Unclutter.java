@@ -27,7 +27,6 @@ public final class Unclutter {
     public static boolean hideFeedVideos() { return false; }
     public static boolean hidePayLaterPrice() { return false; }
     public static boolean loadedSort() { return false; }
-    public static boolean hideFinanceTab() { return false; }
     public static boolean hideFinanceProfile() { return false; }
     public static boolean hideSearchTrays() { return false; }
     public static boolean hideNavTabs() { return false; }

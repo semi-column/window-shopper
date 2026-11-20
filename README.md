@@ -22,7 +22,7 @@ Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed i
 The About section at the bottom shows the patches version and links to this repo.
 
 On new installs, ad and finance-promotion hiding, product-only ratings and telemetry blocking are
-on. Sorting and layout changes are off; bottom tabs keep Meesho's order. Saved choices are preserved.
+on. Sorting and layout changes are off; the tab bar keeps Meesho's order. Saved choices are preserved.
 
 ## What the Meesho patches do
 
@@ -34,10 +34,10 @@ on. Sorting and layout changes are off; bottom tabs keep Meesho's order. Saved c
 - **Sort by rating count:** sorts each search page by rating count, and adds a floating
   **Sort loaded** button on search and category pages that re-sorts everything loaded so far.
 - **Feed reels:** removes reel cards from feeds; the video tab stays.
-- **Pay Later:** hides the secondary price in listings, the "Pay next month" product banner, the Pay Later/Loans tab and the
+- **Pay Later:** hides the secondary price in listings, the "Pay next month" product banner and the
   loan and Pay Later entries in Profile. Payment and checkout are unchanged.
 - **Recommendation trays:** optionally hides the Gold, "You may also like" and related category rows in search, the recently viewed category shelf on home, and Similar Products rows in search, category pages and the home feed.
-- **Bottom tabs:** pick and reorder up to 5 tabs (Account included), and optionally hide Account in
+- **Tab bar:** pick and reorder up to 5 tabs (Account included; untick Loans to drop it), and optionally hide Account in
   the home header (off by default).
 - **Block analytics and telemetry:** stops Meesho's event uploads (which also carry the SMS inbox
   and device-data uploads), OTPless and Juspay logs, and opts out of AppsFlyer, Facebook and

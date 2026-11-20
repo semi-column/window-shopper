@@ -28,7 +28,6 @@ public final class Settings {
         AUTO_SORT(1, "Automatic page sorting", "Sort each new search page by product rating count.", false),
         FLOATING_SORT(1, "Floating sort button", "Sort all loaded search or category products when you tap.", false),
         FEED_VIDEOS(2, "Hide videos in feeds", "Remove reel cards from feeds. Keep the video tab.", false),
-        FINANCE_TAB(2, "Hide Loans / Pay Later tab", "Free the finance navigation slot for Meesho's alternative tab.", false),
         PROFILE_LOANS(2, "Hide Loans in profile", "Hide the Loans shortcut without changing payment services.", false),
         REFER_EARN(2, "Hide Refer and Earn", "Remove Refer and Earn from the home header and account screen.", false),
         PROFILE_PAY_LATER(2, "Hide Pay Later in profile", "Hide Pay Later and deferred-payment shortcuts.", false),
@@ -38,7 +37,7 @@ public final class Settings {
         RECENT_SHELF(2, "Hide recently viewed categories", "Remove the recently viewed category shelf from the home screen.", false),
         SIMILAR_TRAY(2, "Hide Similar Products", "Remove the row added after returning from a product in search, categories or the home feed.", false),
         TELEMETRY(3, "Block analytics and telemetry", "Stop Meesho events, SMS inbox upload, AppsFlyer, Facebook and Firebase analytics."),
-        HEADER_ACCOUNT(2, "Hide Account in header", "Remove the profile button from the home header. Add Account under Bottom tabs.", false);
+        HEADER_ACCOUNT(2, "Hide Account in header", "Remove the profile button from the home header. Add Account to the Tab bar.", false);
 
         final int category;
         final String title;
@@ -69,7 +68,6 @@ public final class Settings {
                 case AUTO_SORT: return Unclutter.sortRatings();
                 case FLOATING_SORT: return Unclutter.loadedSort();
                 case FEED_VIDEOS: return Unclutter.hideFeedVideos();
-                case FINANCE_TAB: return Unclutter.hideFinanceTab();
                 case PROFILE_LOANS:
                 case PROFILE_PAY_LATER: return Unclutter.hideFinanceProfile();
                 case REFER_EARN: return Unclutter.hideReferEarn();
@@ -173,7 +171,6 @@ public final class Settings {
         return enabled(Feature.WISHLIST_AD) ? null : config;
     }
 
-    public static boolean hideFinanceTab() { return enabled(Feature.FINANCE_TAB); }
 
     public static boolean hideSimilarTray() { return enabled(Feature.SIMILAR_TRAY); }
 

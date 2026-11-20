@@ -241,8 +241,8 @@ private fun com.android.tools.smali.dexlib2.iface.Method.isPopupTrayRequest(): B
 }
 
 val hideNavTabs = feature(
-    "Customize bottom tabs",
-    "Adds settings to pick and reorder up to 5 bottom tabs, including Account, and to hide Account in the home header.",
+    "Customize tab bar",
+    "Adds settings to pick and reorder up to 5 tab bar tabs, including Account, and to hide Account in the home header.",
     "hideNavTabs",
 )
 
@@ -278,34 +278,6 @@ val sortLoadedResults = bytecodePatch(
         pause.addInstructions(0, """
             invoke-static/range {p0 .. p0}, Lapp/windowshopper/extension/meesho/LoadedSort;->hide(Ljava/lang/Object;)V
         """.trimIndent())
-    }
-}
-
-val hideFinanceTab = bytecodePatch(
-    name = "Hide Pay Later navigation tab",
-    description = "Prevents Pay Later from taking the fourth navigation slot without disabling its payment services.",
-) {
-    compatibleWith(MEESHO)
-    dependsOn(morpheSettings)
-    execute {
-        enableFeature("hideFinanceTab")
-        val gate = byVersion("X0", "W0")
-        val flag = byVersion("T8", "Y8")
-        val method = mutableClassDefBy("Lcom/meesho/supply/main/HomeActivity;").methods.single {
-            it.name == gate && it.parameterTypes.isEmpty() && it.returnType == "Z"
-        }
-        check(method.implementation!!.instructions.any {
-            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
-            ref?.definingClass == "Lcom/meesho/core/impl/domain/d;" && ref.name == flag
-        }) { "Unexpected Pay Later navigation gate" }
-        check(method.implementation!!.registerCount > 1) { "Navigation gate needs a local register" }
-        method.addInstructionsWithLabels(0, """
-            invoke-static {}, $SETTINGS->hideFinanceTab()Z
-            move-result v0
-            if-eqz v0, :original
-            const/4 v0, 0x0
-            return v0
-        """.trimIndent(), ExternalLabel("original", method.implementation!!.instructions.first()))
     }
 }
 
