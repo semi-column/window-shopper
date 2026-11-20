@@ -41,7 +41,7 @@ public final class SettingsUi {
     private static final int MUTED = 0xFF43474E;
     private static final int BACKGROUND = 0xFFFDFCFF;
     private static final int PRIMARY = 0xFF005FAC;
-    private static final String[] CATEGORIES = {"Ads", "Ratings", "Layout"};
+    private static final String[] CATEGORIES = {"Ads", "Ratings", "Layout", "Privacy"};
 
     private SettingsUi() {}
 

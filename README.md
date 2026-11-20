@@ -34,6 +34,10 @@ Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed i
 - **Recommendation trays:** optionally hides the Gold, "You may also like" and related category rows in search, the recently viewed category shelf on home, and Similar Products rows in search, category pages and the home feed.
 - **Bottom tabs:** pick and reorder up to 5 tabs (Account included), and optionally hide Account in
   the home header (off by default).
+- **Block analytics and telemetry:** stops Meesho's event uploads (which also carry the SMS inbox
+  and device-data uploads), OTPless and Juspay logs, and opts out of AppsFlyer, Facebook and
+  Firebase analytics. Login, payments and fraud checks (Shield, Juspay, NPCI, Truecaller) and
+  Crashlytics are left alone.
 
 Known limits: the bottom-tab toggles match the English tab names. Sorting only covers products that
 are already loaded; unloaded pages are not fetched in advance.

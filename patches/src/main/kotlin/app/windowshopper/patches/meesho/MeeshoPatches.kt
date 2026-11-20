@@ -312,3 +312,38 @@ val hideFinanceProfile = bytecodePatch(
     }
 
 }
+
+private const val TELEMETRY = "Lapp/windowshopper/extension/meesho/Telemetry;"
+
+val blockTelemetry = bytecodePatch(
+    name = "Block analytics and telemetry",
+    description = "Answers Meesho event and SDK logging calls locally, skips the SMS inbox upload worker, and opts out of AppsFlyer, Facebook and Firebase analytics.",
+) {
+    compatibleWith(MEESHO)
+    dependsOn(morpheSettings)
+    execute {
+        enableFeature("blockTelemetry")
+        val call = mutableClassDefBy("Lokhttp3/internal/connection/RealCall;").methods.single {
+            it.name == "getResponseWithInterceptorChain\$okhttp" && it.parameterTypes.isEmpty()
+        }
+        call.addInstructionsWithLabels(0, """
+            invoke-static/range {p0 .. p0}, $TELEMETRY->intercept(Lokhttp3/Call;)Lokhttp3/Response;
+            move-result-object v0
+            if-eqz v0, :original
+            return-object v0
+        """.trimIndent(), ExternalLabel("original", call.implementation!!.instructions.first()))
+
+        // The worker's synchronous doWork returns ListenableWorker.Result; its no-arg subclass is Success.
+        val worker = mutableClassDefBy("Lcom/meesho/sms/impl/SmsReadWorker;").methods.single {
+            it.name != "<init>" && it.parameterTypes.isEmpty() && it.returnType.startsWith("L")
+        }
+        worker.addInstructionsWithLabels(0, """
+            invoke-static {}, $TELEMETRY->skipWorker()Z
+            move-result v0
+            if-eqz v0, :original
+            new-instance v0, ${worker.returnType}
+            invoke-direct {v0}, ${worker.returnType}-><init>()V
+            return-object v0
+        """.trimIndent(), ExternalLabel("original", worker.implementation!!.instructions.first()))
+    }
+}

@@ -37,6 +37,7 @@ public final class Settings {
         RELATED_TRAY(2, "Hide related category trays", "Remove category rows like Storage Drawer Units from search results."),
         RECENT_SHELF(2, "Hide recently viewed categories", "Remove the recently viewed category shelf from the home screen."),
         SIMILAR_TRAY(2, "Hide Similar Products", "Remove the row added after returning from a product in search, categories or the home feed."),
+        TELEMETRY(3, "Block analytics and telemetry", "Stop Meesho events, SMS inbox upload, AppsFlyer, Facebook and Firebase analytics."),
         HEADER_ACCOUNT(2, "Hide Account in header", "Remove the profile button from the home header. Add Account under Bottom tabs.", false);
 
         final int category;
@@ -78,6 +79,7 @@ public final class Settings {
                 case RECENT_SHELF:
                 case SIMILAR_TRAY: return Unclutter.hideSearchTrays();
                 case HEADER_ACCOUNT: return Unclutter.hideNavTabs();
+                case TELEMETRY: return Unclutter.blockTelemetry();
                 default: throw new IllegalStateException("Unknown Morphe feature");
             }
         }
@@ -102,6 +104,7 @@ public final class Settings {
         if (preferences != null) return;
         Application application = (Application) context.getApplicationContext();
         preferences = application.getSharedPreferences("morphe_settings", Context.MODE_PRIVATE);
+        if (Unclutter.blockTelemetry()) Telemetry.configureSdks(application, preferences);
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             public void onActivityResumed(Activity activity) {
                 foreground = new WeakReference<>(activity);

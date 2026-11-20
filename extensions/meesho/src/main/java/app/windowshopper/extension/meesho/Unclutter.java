@@ -32,6 +32,7 @@ public final class Unclutter {
     public static boolean hideSearchTrays() { return false; }
     public static boolean hideNavTabs() { return false; }
     public static boolean hideReferEarn() { return false; }
+    public static boolean blockTelemetry() { return false; }
 
     public static Response filter(Response response) {
         Filters flags = new Filters(Settings.enabled(Settings.Feature.SPONSORED),
