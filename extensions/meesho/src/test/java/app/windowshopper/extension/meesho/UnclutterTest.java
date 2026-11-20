@@ -21,6 +21,19 @@ public final class UnclutterTest {
         assert !Settings.profileRow(new Object());
     }
 
+    @Test
+    public void importRejectsBadConfigBeforeSaving() {
+        for (String bad : new String[] {"nope", "{}", "{\"app\":\"window-shopper-meesho\"}",
+            "{\"app\":\"window-shopper-meesho\",\"features\":{\"SHOP_RATINGS\":\"yes\"}}",
+            "{\"app\":\"window-shopper-meesho\",\"features\":{},\"tabs\":[\"a\",\"b\",\"c\",\"d\",\"e\",\"f\"]}"}) {
+            try {
+                Settings.importJson(bad);
+                throw new AssertionError("Accepted " + bad);
+            } catch (org.json.JSONException expected) {
+            }
+        }
+    }
+
     private static String transform(String text, String path, boolean... f) throws Exception {
         return Unclutter.transform(text, path, flags(f));
     }

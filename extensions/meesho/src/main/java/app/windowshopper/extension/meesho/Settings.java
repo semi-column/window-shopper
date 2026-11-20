@@ -14,6 +14,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import kotlin.jvm.functions.Function0;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public final class Settings {
     public enum Feature {
@@ -142,6 +145,34 @@ public final class Settings {
 
     static boolean saveTabs(List<String> tabs) {
         return preferences != null && preferences.edit().putString("NAV_TABS", String.join(",", tabs)).commit();
+    }
+
+    static String exportJson() throws JSONException {
+        JSONObject features = new JSONObject();
+        for (Feature feature : Feature.values()) features.put(feature.name(), enabled(feature));
+        return new JSONObject().put("app", "window-shopper-meesho").put("version", 1)
+            .put("features", features).put("tabs", new JSONArray(tabs())).toString(2);
+    }
+
+    // Validates everything before writing, so a bad file changes nothing. Returns settings applied.
+    static int importJson(String text) throws JSONException {
+        JSONObject json = new JSONObject(text);
+        if (!"window-shopper-meesho".equals(json.optString("app"))) throw new JSONException("Not a Window Shopper Meesho config");
+        JSONObject features = json.getJSONObject("features");
+        Map<String, Boolean> values = new LinkedHashMap<>();
+        for (Feature feature : Feature.values()) {
+            if (features.has(feature.name())) values.put(feature.name(), features.getBoolean(feature.name()));
+        }
+        List<String> tabs = new ArrayList<>();
+        JSONArray list = json.optJSONArray("tabs");
+        if (list != null) for (int i = 0; i < list.length(); i++) tabs.add(list.getString(i));
+        if (tabs.size() > NavTabs.MAX) throw new JSONException("Up to " + NavTabs.MAX + " tabs");
+        if (preferences == null) throw new IllegalStateException("Morphe settings not initialized");
+        SharedPreferences.Editor edit = preferences.edit();
+        for (Map.Entry<String, Boolean> value : values.entrySet()) edit.putBoolean(value.getKey(), value.getValue());
+        if (list != null) edit.putString("NAV_TABS", String.join(",", tabs));
+        if (!edit.commit()) throw new IllegalStateException("Could not save imported settings");
+        return values.size() + (list != null ? 1 : 0);
     }
 
     // Tabs seen on the home screen (id name -> title), so the picker can list them.

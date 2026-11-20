@@ -6,6 +6,8 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.ComponentName;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
@@ -26,6 +28,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -33,6 +36,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
+import org.json.JSONException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -65,16 +69,18 @@ public final class SettingsUi {
             background(filled ? ACCENT : Color.WHITE, 28, activity), null);
     }
 
-    public static void show(Activity activity) {
+    public static void show(Activity activity) { show(activity, false); }
+
+    private static void show(Activity activity, boolean pending) {
         try {
-            showDialog(activity);
+            showDialog(activity, pending);
         } catch (ReflectiveOperationException | Resources.NotFoundException error) {
             Log.e("WindowShopper", "Cannot load Meesho settings UI", error);
             Toast.makeText(activity, "Could not open Morphe settings", Toast.LENGTH_LONG).show();
         }
     }
 
-    private static void showDialog(Activity activity) throws ReflectiveOperationException {
+    private static void showDialog(Activity activity, boolean pending) throws ReflectiveOperationException {
         Dialog dialog = new Dialog(activity, android.R.style.Theme_Material_Light_NoActionBar);
         LinearLayout root = new LinearLayout(activity);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -145,7 +151,10 @@ public final class SettingsUi {
         note.setPadding(dp(activity, 16), dp(activity, 8), dp(activity, 16), dp(activity, 16));
         preferences.addView(note);
         preferences.addView(divider(activity));
+        preferences.addView(backupSection(activity, dialog));
+        preferences.addView(divider(activity));
         preferences.addView(aboutRow(activity));
+        if (pending) changed.run();
         apply.setOnClickListener(view -> {
             try {
                 activity.startActivity(Intent.makeRestartActivityTask(new ComponentName(
@@ -169,31 +178,139 @@ public final class SettingsUi {
     }
 
     private static View aboutRow(Activity activity) {
-        LinearLayout about = new LinearLayout(activity);
-        about.setOrientation(LinearLayout.VERTICAL);
-        about.setPadding(dp(activity, 16), dp(activity, 16), dp(activity, 16), dp(activity, 20));
-        about.setBackground(new RippleDrawable(ColorStateList.valueOf(0x149F2089),
-            new ColorDrawable(Color.WHITE), null));
+        LinearLayout section = new LinearLayout(activity);
+        section.setOrientation(LinearLayout.VERTICAL);
+        section.setPadding(dp(activity, 16), dp(activity, 16), dp(activity, 16), dp(activity, 24));
         TextView heading = text(activity, "About", 20, INK, true);
         heading.setAccessibilityHeading(true);
-        about.addView(heading);
-        TextView name = text(activity, "Window Shopper patches v" + BuildConfig.PATCHES_VERSION, 17, INK, false);
-        name.setPadding(0, dp(activity, 12), 0, 0);
-        about.addView(name);
-        TextView link = text(activity, "github.com/" + REPO, 14, PRIMARY, false);
-        link.setPadding(0, dp(activity, 4), 0, 0);
-        about.addView(link);
-        TextView star = text(activity, "Enjoying it? Star the repo on GitHub to support the project.", 14, MUTED, false);
-        star.setPadding(0, dp(activity, 4), 0, 0);
-        about.addView(star);
-        about.setOnClickListener(view -> {
+        heading.setPadding(0, 0, 0, dp(activity, 12));
+        section.addView(heading);
+
+        LinearLayout card = new LinearLayout(activity);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(activity, 16), dp(activity, 16), dp(activity, 16), dp(activity, 16));
+        GradientDrawable cardBg = new GradientDrawable();
+        cardBg.setColor(Color.WHITE);
+        cardBg.setCornerRadius(dp(activity, 12));
+        cardBg.setStroke(dp(activity, 1), 0xFFE0E0E8);
+        card.setBackground(cardBg);
+        section.addView(card);
+
+        LinearLayout title = new LinearLayout(activity);
+        title.setGravity(Gravity.CENTER_VERTICAL);
+        title.addView(text(activity, "Window Shopper", 18, INK, true), new LinearLayout.LayoutParams(0, -2, 1));
+        TextView version = text(activity, "v" + BuildConfig.PATCHES_VERSION, 12, PRIMARY, false);
+        version.setPadding(dp(activity, 10), dp(activity, 4), dp(activity, 10), dp(activity, 4));
+        GradientDrawable chip = new GradientDrawable();
+        chip.setColor(0x149F2089);
+        chip.setCornerRadius(dp(activity, 12));
+        version.setBackground(chip);
+        title.addView(version);
+        card.addView(title);
+
+        TextView body = text(activity, "Open-source Morphe patches that unclutter Meesho. "
+            + "If they help, a star on GitHub helps others find them.", 14, MUTED, false);
+        body.setPadding(0, dp(activity, 8), 0, dp(activity, 16));
+        card.addView(body);
+
+        LinearLayout buttons = new LinearLayout(activity);
+        LinearLayout.LayoutParams half = new LinearLayout.LayoutParams(0, dp(activity, 44), 1);
+        buttons.addView(button(activity, "GitHub", false), half);
+        LinearLayout.LayoutParams right = new LinearLayout.LayoutParams(0, dp(activity, 44), 1);
+        right.leftMargin = dp(activity, 12);
+        buttons.addView(button(activity, "\u2605 Star repo", true), right);
+        card.addView(buttons);
+        for (int i = 0; i < buttons.getChildCount(); i++) {
+            buttons.getChildAt(i).setOnClickListener(view -> {
+                try {
+                    activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/" + REPO)));
+                } catch (ActivityNotFoundException error) {
+                    Toast.makeText(activity, "No browser found", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        return section;
+    }
+
+    private static TextView button(Activity activity, String label, boolean filled) {
+        TextView button = text(activity, label, 14, filled ? Color.WHITE : PRIMARY, false);
+        button.setGravity(Gravity.CENTER);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(dp(activity, 8));
+        if (filled) bg.setColor(PRIMARY);
+        else { bg.setColor(Color.WHITE); bg.setStroke(dp(activity, 1), PRIMARY); }
+        button.setBackground(new RippleDrawable(ColorStateList.valueOf(filled ? 0x33FFFFFF : 0x149F2089), bg, null));
+        return button;
+    }
+
+    private static View backupSection(Activity activity, Dialog dialog) {
+        LinearLayout section = new LinearLayout(activity);
+        section.setOrientation(LinearLayout.VERTICAL);
+        TextView heading = text(activity, "Backup", 20, INK, true);
+        heading.setPadding(dp(activity, 16), dp(activity, 16), dp(activity, 16), dp(activity, 12));
+        heading.setBackgroundColor(Color.WHITE);
+        heading.setAccessibilityHeading(true);
+        section.addView(heading);
+        section.addView(actionRow(activity, "Export settings", "Copy settings as JSON and share or save them.", view -> {
             try {
-                activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/" + REPO)));
-            } catch (ActivityNotFoundException error) {
-                Toast.makeText(activity, "No browser found", Toast.LENGTH_SHORT).show();
+                String json = Settings.exportJson();
+                ((ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE))
+                    .setPrimaryClip(ClipData.newPlainText("Window Shopper settings", json));
+                Intent send = new Intent(Intent.ACTION_SEND).setType("application/json")
+                    .putExtra(Intent.EXTRA_SUBJECT, "window-shopper-meesho.json").putExtra(Intent.EXTRA_TEXT, json);
+                activity.startActivity(Intent.createChooser(send, "Export settings"));
+                Toast.makeText(activity, "Settings copied to clipboard", Toast.LENGTH_SHORT).show();
+            } catch (JSONException | ActivityNotFoundException error) {
+                Log.e("WindowShopper", "Cannot export settings", error);
+                Toast.makeText(activity, "Could not export settings", Toast.LENGTH_LONG).show();
             }
-        });
-        return about;
+        }));
+        section.addView(actionRow(activity, "Import settings", "Paste exported JSON to replace these settings.", view -> {
+            EditText input = new EditText(activity);
+            input.setHint("Paste settings JSON");
+            input.setMinLines(4);
+            input.setTextSize(13);
+            ClipData clip = ((ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE)).getPrimaryClip();
+            if (clip != null && clip.getItemCount() > 0) {
+                CharSequence pasted = clip.getItemAt(0).coerceToText(activity);
+                if (pasted != null && pasted.toString().contains("window-shopper-meesho")) input.setText(pasted);
+            }
+            FrameLayout box = new FrameLayout(activity);
+            box.setPadding(dp(activity, 20), dp(activity, 8), dp(activity, 20), 0);
+            box.addView(input);
+            new AlertDialog.Builder(activity)
+                .setTitle("Import settings")
+                .setView(box)
+                .setPositiveButton("Import", (alert, which) -> {
+                    try {
+                        int count = Settings.importJson(input.getText().toString());
+                        Toast.makeText(activity, "Imported " + count + " settings", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        show(activity, true);
+                    } catch (JSONException | IllegalStateException error) {
+                        Log.e("WindowShopper", "Cannot import settings", error);
+                        Toast.makeText(activity, "Invalid settings: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+        }));
+        return section;
+    }
+
+    private static View actionRow(Activity activity, String title, String summary, View.OnClickListener click) {
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setMinimumHeight(dp(activity, 72));
+        row.setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12));
+        row.setBackground(new RippleDrawable(ColorStateList.valueOf(0x149F2089),
+            new ColorDrawable(Color.WHITE), null));
+        row.addView(text(activity, title, 17, INK, false));
+        TextView detail = text(activity, summary, 14, MUTED, false);
+        detail.setPadding(0, dp(activity, 4), 0, 0);
+        row.addView(detail);
+        row.setOnClickListener(click);
+        return row;
     }
 
     private static View featureRow(Activity activity, Settings.Feature feature, Runnable changed) throws ReflectiveOperationException {
