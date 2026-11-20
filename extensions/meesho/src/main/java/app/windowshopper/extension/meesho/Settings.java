@@ -36,7 +36,8 @@ public final class Settings {
         SIMILAR_TRAY(2, "Hide Similar Products", "Remove the row added after returning from a product in search, categories or the home feed."),
         NAV_CATEGORIES(2, "Hide Categories tab", "Remove Categories from the bottom tab bar.", false),
         NAV_MALL(2, "Hide Mall tab", "Remove Mall from the bottom tab bar.", false),
-        NAV_VIDEO(2, "Hide Video Finds tab", "Remove Video Finds from the bottom tab bar.", false);
+        NAV_VIDEO(2, "Hide Video Finds tab", "Remove Video Finds from the bottom tab bar.", false),
+        NAV_ACCOUNT(2, "Account in tab bar", "Move Account from the home header to the bottom tab bar. Hide another tab to make room.", false);
 
         final int category;
         final String title;
@@ -78,7 +79,8 @@ public final class Settings {
                 case SIMILAR_TRAY: return Unclutter.hideSearchTrays();
                 case NAV_CATEGORIES:
                 case NAV_MALL:
-                case NAV_VIDEO: return Unclutter.hideNavTabs();
+                case NAV_VIDEO:
+                case NAV_ACCOUNT: return Unclutter.hideNavTabs();
                 default: throw new IllegalStateException("Unknown Morphe feature");
             }
         }

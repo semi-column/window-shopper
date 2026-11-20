@@ -32,7 +32,8 @@ Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed i
 - **Pay Later:** hides the "with Pay Later" secondary price, the Pay Later/Loans tab and the
   loan and Pay Later entries in Profile. Payment and checkout are unchanged.
 - **Recommendation trays:** optionally hides the Gold, "You may also like" and related category rows in search, the recently viewed category shelf on home, and Similar Products rows in search, category pages and the home feed.
-- **Bottom tabs:** optionally hides Categories, Mall and Video Finds (off by default).
+- **Bottom tabs:** optionally hides Categories, Mall and Video Finds, and can move Account from the
+  home header into the tab bar in a freed slot (all off by default).
 
 Known limits: the bottom-tab toggles match the English tab names. Sorting only covers products that
 are already loaded; unloaded pages are not fetched in advance.

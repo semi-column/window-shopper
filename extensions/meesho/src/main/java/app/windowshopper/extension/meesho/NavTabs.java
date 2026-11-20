@@ -25,13 +25,39 @@ final class NavTabs {
             Menu menu = menu(bar);
             if (menu == null) throw new IllegalStateException("Bottom navigation menu not found");
             update(menu);
+            account(activity, bar, menu);
             if (bar.getTag(id) == null) {
                 bar.setTag(id, LISTENER_TAG);
                 bar.addOnLayoutChangeListener((view, l, t, r, b, ol, ot, or, ob) -> update(menu));
+                activity.getWindow().getDecorView().getViewTreeObserver()
+                    .addOnGlobalLayoutListener(() -> account(activity, bar, menu));
             }
-        } catch (IllegalAccessException | IllegalStateException error) {
+        } catch (IllegalAccessException | RuntimeException error) {
             Log.e("WindowShopper", "Cannot update bottom navigation tabs", error);
         }
+    }
+
+    private static void account(Activity activity, View bar, Menu menu) {
+        boolean on = Settings.enabled(Settings.Feature.NAV_ACCOUNT);
+        android.content.res.Resources res = activity.getResources();
+        String pkg = activity.getPackageName();
+        int id = res.getIdentifier("action_account", "id", pkg);
+        MenuItem item = menu.findItem(id);
+        if (!on && item != null) menu.removeItem(id);
+        if (on && item == null) {
+            // BottomNavigationView caps items at 5, hidden ones included: drop a hidden tab to make room.
+            for (int i = 0; i < menu.size() && menu.size() >= 5; i++) {
+                MenuItem other = menu.getItem(i);
+                if (!other.isVisible()) menu.removeItem(other.getItemId());
+            }
+            if (menu.size() < 5) item = menu.add(Menu.NONE, id, Menu.CATEGORY_SYSTEM, res.getIdentifier("account", "string", pkg))
+                .setIcon(res.getIdentifier("menu_account_selector", "drawable", pkg));
+        }
+        View header = activity.findViewById(res.getIdentifier("header_layout", "id", pkg));
+        if (header != null && on && item != null) header.setVisibility(View.GONE);
+        View tab = on ? bar.findViewById(id) : null;
+        if (tab != null) tab.setOnClickListener(v -> activity.startActivity(new android.content.Intent()
+            .setClassName(activity, "com.meesho.account.impl.AccountActivity")));
     }
 
     // ponytail: matches English tab titles; add item-id matching if Meesho localizes this bar.
