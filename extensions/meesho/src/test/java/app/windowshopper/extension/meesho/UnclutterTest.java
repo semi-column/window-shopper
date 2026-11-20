@@ -15,6 +15,12 @@ import org.junit.Test;
 import retrofit2.Invocation;
 
 public final class UnclutterTest {
+    @Test
+    public void profileDividerIgnoresNullAndUnrelatedRows() {
+        assert !Settings.profileRow(null);
+        assert !Settings.profileRow(new Object());
+    }
+
     private static String transform(String text, String path, boolean... f) throws Exception {
         return Unclutter.transform(text, path, flags(f));
     }

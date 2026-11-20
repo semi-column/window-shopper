@@ -6,13 +6,14 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.ComponentName;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
@@ -24,12 +25,11 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -37,10 +37,10 @@ import java.util.Set;
 
 public final class SettingsUi {
     static final int ACCENT = Color.rgb(159, 37, 112);
-    private static final int INK = 0xFF1A1C1E;
-    private static final int MUTED = 0xFF43474E;
-    private static final int BACKGROUND = 0xFFFDFCFF;
-    private static final int PRIMARY = 0xFF005FAC;
+    private static final int INK = 0xFF353543;
+    private static final int MUTED = 0xFF616173;
+    private static final int BACKGROUND = 0xFFFAFAFA;
+    private static final int PRIMARY = 0xFF9F2089;
     private static final String[] CATEGORIES = {"Ads", "Ratings", "Layout", "Privacy"};
 
     private SettingsUi() {}
@@ -63,6 +63,15 @@ public final class SettingsUi {
     }
 
     public static void show(Activity activity) {
+        try {
+            showDialog(activity);
+        } catch (ReflectiveOperationException | Resources.NotFoundException error) {
+            Log.e("WindowShopper", "Cannot load Meesho settings UI", error);
+            Toast.makeText(activity, "Could not open Morphe settings", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void showDialog(Activity activity) throws ReflectiveOperationException {
         Dialog dialog = new Dialog(activity, android.R.style.Theme_Material_Light_NoActionBar);
         LinearLayout root = new LinearLayout(activity);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -73,13 +82,16 @@ public final class SettingsUi {
             return insets;
         });
 
-        Toolbar toolbar = new Toolbar(activity);
-        toolbar.setTitle("Morphe");
-        toolbar.setTitleTextColor(INK);
-        toolbar.setNavigationIcon(new BackIcon(activity));
-        toolbar.setNavigationContentDescription("Back");
-        toolbar.setNavigationOnClickListener(view -> dialog.dismiss());
+        Class<?> toolbarType = Class.forName("com.meesho.mesh.android.components.MeshToolbar");
+        View toolbar = (View) toolbarType.getConstructor(Context.class).newInstance(activity);
+        toolbarType.getMethod("setTitle", CharSequence.class).invoke(toolbar, "MORPHE");
+        toolbarType.getMethod("setNavigationIcon", int.class)
+            .invoke(toolbar, resource(activity, "drawable", "mesh_ic_toolbar_navigation_back"));
+        toolbarType.getMethod("setNavigationContentDescription", CharSequence.class).invoke(toolbar, "Back");
+        toolbarType.getMethod("setNavigationOnClickListener", View.OnClickListener.class)
+            .invoke(toolbar, (View.OnClickListener) view -> dialog.dismiss());
         root.addView(toolbar, new LinearLayout.LayoutParams(-1, dp(activity, 56)));
+        root.addView(divider(activity));
 
         ScrollView scroll = new ScrollView(activity);
         LinearLayout preferences = new LinearLayout(activity);
@@ -89,22 +101,24 @@ public final class SettingsUi {
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
 
         for (int category = 0; category < CATEGORIES.length; category++) {
-            TextView heading = text(activity, CATEGORIES[category], 14, PRIMARY, true);
-            heading.setPadding(dp(activity, 16), dp(activity, 24), dp(activity, 16), dp(activity, 8));
+            TextView heading = text(activity, CATEGORIES[category], 20, INK, true);
+            heading.setPadding(dp(activity, 16), dp(activity, 16), dp(activity, 16), dp(activity, 12));
+            heading.setBackgroundColor(Color.WHITE);
             heading.setAccessibilityHeading(true);
             preferences.addView(heading);
             for (Settings.Feature feature : Settings.Feature.values()) {
                 if (feature.category == category) preferences.addView(featureRow(activity, feature));
             }
             if (category == 2) preferences.addView(tabsRow(activity));
+            preferences.addView(divider(activity));
         }
 
         LinearLayout apply = new LinearLayout(activity);
         apply.setOrientation(LinearLayout.VERTICAL);
         apply.setPadding(dp(activity, 16), dp(activity, 20), dp(activity, 16), dp(activity, 20));
         apply.setMinimumHeight(dp(activity, 64));
-        apply.setBackground(new RippleDrawable(ColorStateList.valueOf(0x1F005FAC),
-            null, new ColorDrawable(Color.WHITE)));
+        apply.setBackground(new RippleDrawable(ColorStateList.valueOf(0x149F2089),
+            new ColorDrawable(Color.WHITE), null));
         apply.addView(text(activity, "Apply & reopen Meesho", 16, PRIMARY, false));
         TextView applySummary = text(activity, "Rebuild navigation and profile. Your sign-in is kept.",
             14, MUTED, false);
@@ -138,33 +152,31 @@ public final class SettingsUi {
         root.requestApplyInsets();
     }
 
-    private static View featureRow(Activity activity, Settings.Feature feature) {
+    private static View featureRow(Activity activity, Settings.Feature feature) throws ReflectiveOperationException {
         boolean available = feature.available();
         LinearLayout row = new LinearLayout(activity);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setMinimumHeight(dp(activity, 72));
         row.setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12));
-        row.setBackground(new RippleDrawable(ColorStateList.valueOf(0x1F005FAC),
-            null, new ColorDrawable(Color.WHITE)));
+        row.setBackground(new RippleDrawable(ColorStateList.valueOf(0x149F2089),
+            new ColorDrawable(Color.WHITE), null));
         row.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
         LinearLayout labels = new LinearLayout(activity);
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.setPadding(0, 0, dp(activity, 12), 0);
-        labels.addView(text(activity, feature.title, 16, INK, false));
+        labels.addView(text(activity, feature.title, 17, INK, false));
         TextView detail = text(activity, available ? feature.summary
             : "Not included in this APK. Select its patch before building.", 14, MUTED, false);
         detail.setPadding(0, dp(activity, 4), 0, 0);
         labels.addView(detail);
         row.addView(labels, new LinearLayout.LayoutParams(0, -2, 1));
-        Switch toggle = new Switch(activity);
+        CompoundButton toggle = (CompoundButton) Class.forName("com.google.android.material.switchmaterial.SwitchMaterial")
+            .getConstructor(Context.class).newInstance(activity);
         toggle.setMinimumHeight(dp(activity, 48));
         toggle.setContentDescription(feature.title);
         toggle.setTag("morphe-" + feature.name());
         toggle.setChecked(Settings.enabled(feature));
         toggle.setEnabled(available);
-        int[][] states = {{android.R.attr.state_checked}, {}};
-        toggle.setThumbTintList(new ColorStateList(states, new int[] {PRIMARY, 0xFF73777F}));
-        toggle.setTrackTintList(new ColorStateList(states, new int[] {0xFFD4E3FF, 0xFFDFE2EB}));
         toggle.setOnCheckedChangeListener((view, checked) -> {
             if (!Settings.save(feature, checked)) {
                 Toast.makeText(activity, "Could not save setting; it may reset after restart",
@@ -183,9 +195,9 @@ public final class SettingsUi {
         row.setOrientation(LinearLayout.VERTICAL);
         row.setMinimumHeight(dp(activity, 72));
         row.setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12));
-        row.setBackground(new RippleDrawable(ColorStateList.valueOf(0x1F005FAC),
-            null, new ColorDrawable(Color.WHITE)));
-        row.addView(text(activity, "Bottom tabs", 16, INK, false));
+        row.setBackground(new RippleDrawable(ColorStateList.valueOf(0x149F2089),
+            new ColorDrawable(Color.WHITE), null));
+        row.addView(text(activity, "Bottom tabs", 17, INK, false));
         TextView detail = text(activity, "", 14, MUTED, false);
         detail.setPadding(0, dp(activity, 4), 0, 0);
         row.addView(detail);
@@ -225,6 +237,9 @@ public final class SettingsUi {
             row.setTag(tab);
             CheckBox box = new CheckBox(activity);
             box.setText(known.get(tab));
+            box.setTextAppearance(activity, resource(activity, "style", "TextAppearance.Mesh.Body1"));
+            box.setButtonTintList(new ColorStateList(new int[][] {{android.R.attr.state_checked}, {}},
+                new int[] {PRIMARY, MUTED}));
             box.setTextSize(16);
             box.setChecked(picked.contains(tab));
             box.setOnCheckedChangeListener((view, checked) -> {
@@ -306,40 +321,27 @@ public final class SettingsUi {
 
     private static TextView text(Activity activity, String value, int size, int color, boolean bold) {
         TextView text = new TextView(activity);
+        text.setTextAppearance(activity, resource(activity, "style", bold ? "TextAppearance.Mesh.Headline6"
+            : size > 14 ? "TextAppearance.Mesh.Body1" : "TextAppearance.Mesh.Body2"));
         text.setText(value);
         text.setTextSize(size);
         text.setTextColor(color);
-        text.setTypeface(Typeface.create(bold ? "sans-serif-medium" : "sans-serif", Typeface.NORMAL));
         return text;
     }
 
-    private static final class BackIcon extends Drawable {
-        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final int size;
+    private static int resource(Activity activity, String type, String name) {
+        int id = activity.getResources().getIdentifier(name, type, "com.meesho.supply");
+        if (id == 0) throw new Resources.NotFoundException("Missing Meesho resource: " + type + "/" + name);
+        return id;
+    }
 
-        BackIcon(Activity activity) {
-            size = dp(activity, 24);
-            paint.setColor(INK);
-            paint.setStrokeWidth(2);
-            paint.setStrokeCap(Paint.Cap.ROUND);
-        }
-
-        public int getIntrinsicWidth() { return size; }
-        public int getIntrinsicHeight() { return size; }
-
-        public void draw(Canvas canvas) {
-            canvas.save();
-            canvas.translate(getBounds().left, getBounds().top);
-            canvas.scale(getBounds().width() / 24f, getBounds().height() / 24f);
-            canvas.drawLine(4, 12, 20, 12, paint);
-            canvas.drawLine(4, 12, 11, 5, paint);
-            canvas.drawLine(4, 12, 11, 19, paint);
-            canvas.restore();
-        }
-
-        public void setAlpha(int alpha) { paint.setAlpha(alpha); invalidateSelf(); }
-        public void setColorFilter(ColorFilter filter) { paint.setColorFilter(filter); invalidateSelf(); }
-        public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+    private static View divider(Activity activity) {
+        View divider = new View(activity);
+        divider.setBackground(activity.getResources().getDrawable(
+            resource(activity, "drawable", "mesh_list_divider_bg"), activity.getTheme()));
+        divider.setLayoutParams(new LinearLayout.LayoutParams(-1, activity.getResources()
+            .getDimensionPixelSize(resource(activity, "dimen", "mesh_divider_height"))));
+        return divider;
     }
 
     static final class SortIcon extends Drawable {

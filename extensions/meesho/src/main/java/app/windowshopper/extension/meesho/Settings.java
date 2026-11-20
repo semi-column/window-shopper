@@ -23,20 +23,20 @@ public final class Settings {
         CONFIRMATION_AD(0, "Pay Later confirmation banner", "Hide the configured Pay Later promotion after an order."),
         WISHLIST_AD(0, "Wishlist Pay Later banner", "Hide the buy now, pay next month banner in Wishlist."),
         PROMO_POPUP(0, "Floating promotions", "Hide sale popups and floating campaign ads like Locked Deals."),
-        PAY_LATER_PRICE(0, "Pay Later price line", "Hide the secondary price; keep the actual product price."),
+        PAY_LATER_PRICE(0, "Pay Later price line", "Hide Pay Later prices in listings and the Pay next month product banner."),
         SHOP_RATINGS(1, "Hide shop ratings", "Keep product ratings only. Missing ratings stay missing."),
-        AUTO_SORT(1, "Automatic page sorting", "Sort each new search page by product rating count."),
-        FLOATING_SORT(1, "Floating sort button", "Sort all loaded search or category products when you tap."),
-        FEED_VIDEOS(2, "Hide videos in feeds", "Remove reel cards from feeds. Keep the video tab."),
-        FINANCE_TAB(2, "Hide Loans / Pay Later tab", "Free the finance navigation slot for Meesho's alternative tab."),
-        PROFILE_LOANS(2, "Hide Loans in profile", "Hide the Loans shortcut without changing payment services."),
-        REFER_EARN(2, "Hide Refer and Earn", "Remove Refer and Earn from the home header and account screen."),
-        PROFILE_PAY_LATER(2, "Hide Pay Later in profile", "Hide Pay Later and deferred-payment shortcuts."),
-        GOLD_TRAY(2, "Hide Gold tray in search", "Remove the Gold Premium Quality row. Gold cards in results stay."),
-        SUGGESTION_TRAY(2, "Hide You may also like", "Remove the suggested searches row from search results."),
-        RELATED_TRAY(2, "Hide related category trays", "Remove category rows like Storage Drawer Units from search results."),
-        RECENT_SHELF(2, "Hide recently viewed categories", "Remove the recently viewed category shelf from the home screen."),
-        SIMILAR_TRAY(2, "Hide Similar Products", "Remove the row added after returning from a product in search, categories or the home feed."),
+        AUTO_SORT(1, "Automatic page sorting", "Sort each new search page by product rating count.", false),
+        FLOATING_SORT(1, "Floating sort button", "Sort all loaded search or category products when you tap.", false),
+        FEED_VIDEOS(2, "Hide videos in feeds", "Remove reel cards from feeds. Keep the video tab.", false),
+        FINANCE_TAB(2, "Hide Loans / Pay Later tab", "Free the finance navigation slot for Meesho's alternative tab.", false),
+        PROFILE_LOANS(2, "Hide Loans in profile", "Hide the Loans shortcut without changing payment services.", false),
+        REFER_EARN(2, "Hide Refer and Earn", "Remove Refer and Earn from the home header and account screen.", false),
+        PROFILE_PAY_LATER(2, "Hide Pay Later in profile", "Hide Pay Later and deferred-payment shortcuts.", false),
+        GOLD_TRAY(2, "Hide Gold tray in search", "Remove the Gold Premium Quality row. Gold cards in results stay.", false),
+        SUGGESTION_TRAY(2, "Hide You may also like", "Remove the suggested searches row from search results.", false),
+        RELATED_TRAY(2, "Hide related category trays", "Remove category rows like Storage Drawer Units from search results.", false),
+        RECENT_SHELF(2, "Hide recently viewed categories", "Remove the recently viewed category shelf from the home screen.", false),
+        SIMILAR_TRAY(2, "Hide Similar Products", "Remove the row added after returning from a product in search, categories or the home feed.", false),
         TELEMETRY(3, "Block analytics and telemetry", "Stop Meesho events, SMS inbox upload, AppsFlyer, Facebook and Firebase analytics."),
         HEADER_ACCOUNT(2, "Hide Account in header", "Remove the profile button from the home header. Add Account under Bottom tabs.", false);
 
@@ -176,6 +176,22 @@ public final class Settings {
     public static boolean hideFinanceTab() { return enabled(Feature.FINANCE_TAB); }
 
     public static boolean hideSimilarTray() { return enabled(Feature.SIMILAR_TRAY); }
+
+    public static boolean showPayLaterPrice(boolean show) { return show && !enabled(Feature.PAY_LATER_PRICE); }
+
+    public static boolean profileRow(Object item) {
+        if (item == null) return false;
+        String type = item.getClass().getName();
+        if ("dng".equals(type) || "vi.m".equals(type)) return true;
+        if (!"b5a".equals(type) && !"vi.i".equals(type)) return false;
+        try {
+            Object tag = item.getClass().getField("f").get(item);
+            return tag != null && "morphe_settings".equals(tag.getClass().getField("a").get(tag));
+        } catch (ReflectiveOperationException error) {
+            Log.e("WindowShopper", "Cannot identify Morphe profile row", error);
+            return false;
+        }
+    }
 
     public static boolean addPayLaterProfile(List<Object> list, Object item) {
         return !enabled(Feature.PROFILE_PAY_LATER) && list.add(item);

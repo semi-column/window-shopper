@@ -17,7 +17,11 @@ Add this repo to Morphe Manager, or use the button:
 Then patch your own copy of the app. This repo never ships patched APKs.
 
 After patching Meesho, open **Profile → Morphe**, just below Settings, to switch each feature on or off.
+The menu uses Meesho's native controls and typography; an account divider separates it from Settings.
 Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed in.
+
+On new installs, ad and finance-promotion hiding, product-only ratings and telemetry blocking are
+on. Sorting and layout changes are off; bottom tabs keep Meesho's order. Saved choices are preserved.
 
 ## What the Meesho patches do
 
@@ -29,7 +33,7 @@ Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed i
 - **Sort by rating count:** sorts each search page by rating count, and adds a floating
   **Sort loaded** button on search and category pages that re-sorts everything loaded so far.
 - **Feed reels:** removes reel cards from feeds; the video tab stays.
-- **Pay Later:** hides the "with Pay Later" secondary price, the Pay Later/Loans tab and the
+- **Pay Later:** hides the secondary price in listings, the "Pay next month" product banner, the Pay Later/Loans tab and the
   loan and Pay Later entries in Profile. Payment and checkout are unchanged.
 - **Recommendation trays:** optionally hides the Gold, "You may also like" and related category rows in search, the recently viewed category shelf on home, and Similar Products rows in search, category pages and the home feed.
 - **Bottom tabs:** pick and reorder up to 5 tabs (Account included), and optionally hide Account in

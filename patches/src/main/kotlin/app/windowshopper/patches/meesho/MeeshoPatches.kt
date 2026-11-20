@@ -10,9 +10,11 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val EXTENSION = "Lapp/windowshopper/extension/meesho/Unclutter;"
 private const val SETTINGS = "Lapp/windowshopper/extension/meesho/Settings;"
@@ -69,8 +71,32 @@ private val morpheSettings = bytecodePatch {
         profile.addInstructions(build.index, """
             invoke-static/range {v$register .. v$register}, $SETTINGS->addProfileEntry(Ljava/util/List;)V
         """.trimIndent())
+
+        val row = byVersion("Ldng;", "Lvi/m;")
+        val owners = mutableListOf<String>()
+        classDefForEach { classDef ->
+            if (classDef.methods.any { it.isProfileDividerGate(row) }) owners += classDef.type
+        }
+        check(owners.size == 1) { "Expected one profile divider gate, found ${owners.size}" }
+        val divider = mutableClassDefBy(owners.single()).methods.single { it.isProfileDividerGate(row) }
+        val target = divider.implementation!!.instructions.withIndex().single {
+            it.value.opcode == Opcode.INSTANCE_OF &&
+                ((it.value as ReferenceInstruction).reference as TypeReference).type == row
+        }
+        val registers = target.value as TwoRegisterInstruction
+        divider.replaceInstruction(target.index,
+            "invoke-static/range {v${registers.registerB} .. v${registers.registerB}}, " +
+                "$SETTINGS->profileRow(Ljava/lang/Object;)Z")
+        divider.addInstructions(target.index + 1, "move-result v${registers.registerA}")
     }
 }
+
+private fun com.android.tools.smali.dexlib2.iface.Method.isProfileDividerGate(row: String) =
+    returnType == "Z" && parameterTypes.size == 2 && parameterTypes.first().toString() == "I" &&
+        implementation?.instructions?.any {
+            it.opcode == Opcode.INSTANCE_OF &&
+                ((it as ReferenceInstruction).reference as TypeReference).type == row
+        } == true
 
 private val responseHook = bytecodePatch {
     compatibleWith(MEESHO)
@@ -159,11 +185,28 @@ val hideFeedVideos = feature(
     "hideFeedVideos",
 )
 
-val hidePayLaterPrice = feature(
-    "Hide Pay Later secondary price",
-    "Hides the Pay Later secondary price on discovery listings without changing the primary price or checkout.",
-    "hidePayLaterPrice",
-)
+val hidePayLaterPrice = bytecodePatch(
+    name = "Hide Pay Later secondary price",
+    description = "Hides the Pay Later secondary price on listings and the Pay next month banner on product pages without changing the primary price or checkout.",
+) {
+    compatibleWith(MEESHO)
+    dependsOn(responseHook)
+    execute {
+        enableFeature("hidePayLaterPrice")
+        val owner = byVersion("Lsih;", "Lwz/d6;")
+        val stub = byVersion("Lxoj;", "Landroidx/databinding/p0;")
+        val model = byVersion("Ljkh;", "Lwz/p7;")
+        val method = mutableClassDefBy(owner).methods.single {
+            it.name == "d" && it.returnType == "Z" &&
+                it.parameterTypes.map(CharSequence::toString) == listOf(stub, stub, "Z", "Z", model)
+        }
+        check(method.implementation!!.registerCount <= 255) { "Pay Later display gate has too many registers" }
+        method.addInstructions(0, """
+            invoke-static/range {p2 .. p2}, $SETTINGS->showPayLaterPrice(Z)Z
+            move-result p2
+        """.trimIndent())
+    }
+}
 
 val hideSearchTrays = bytecodePatch(
     name = "Hide recommendation trays",
