@@ -1,6 +1,7 @@
 package app.windowshopper.extension.meesho;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.ComponentName;
@@ -21,12 +22,17 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public final class SettingsUi {
     static final int ACCENT = Color.rgb(159, 37, 112);
@@ -89,6 +95,7 @@ public final class SettingsUi {
             for (Settings.Feature feature : Settings.Feature.values()) {
                 if (feature.category == category) preferences.addView(featureRow(activity, feature));
             }
+            if (category == 2) preferences.addView(tabsRow(activity));
         }
 
         LinearLayout apply = new LinearLayout(activity);
@@ -167,6 +174,107 @@ public final class SettingsUi {
         row.setOnClickListener(view -> { if (available) toggle.setChecked(!toggle.isChecked()); });
         if (!available) row.setAlpha(0.55f);
         return row;
+    }
+
+    private static View tabsRow(Activity activity) {
+        boolean available = Unclutter.hideNavTabs();
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setMinimumHeight(dp(activity, 72));
+        row.setPadding(dp(activity, 16), dp(activity, 12), dp(activity, 16), dp(activity, 12));
+        row.setBackground(new RippleDrawable(ColorStateList.valueOf(0x1F005FAC),
+            null, new ColorDrawable(Color.WHITE)));
+        row.addView(text(activity, "Bottom tabs", 16, INK, false));
+        TextView detail = text(activity, "", 14, MUTED, false);
+        detail.setPadding(0, dp(activity, 4), 0, 0);
+        row.addView(detail);
+        Runnable refresh = () -> {
+            List<String> names = new ArrayList<>();
+            java.util.Map<String, String> known = Settings.knownTabs();
+            for (String tab : Settings.tabs()) if (known.containsKey(tab)) names.add(known.get(tab));
+            detail.setText(!available ? "Not included in this APK. Select its patch before building."
+                : names.isEmpty() ? "Meesho default. Tap to choose and reorder up to 5 tabs."
+                : String.join(" · ", names));
+        };
+        refresh.run();
+        row.setOnClickListener(view -> { if (available) tabsDialog(activity, refresh); });
+        if (!available) row.setAlpha(0.55f);
+        return row;
+    }
+
+    private static void tabsDialog(Activity activity, Runnable done) {
+        java.util.Map<String, String> known = Settings.knownTabs();
+        if (known.isEmpty()) {
+            Toast.makeText(activity, "Open the home screen once, then try again", Toast.LENGTH_LONG).show();
+            return;
+        }
+        List<String> order = new ArrayList<>();
+        Set<String> picked = new HashSet<>();
+        for (String tab : Settings.tabs()) if (known.containsKey(tab) && picked.add(tab)) order.add(tab);
+        if (picked.isEmpty()) {
+            for (String tab : known.keySet()) if (!tab.equals("action_account") && picked.size() < NavTabs.MAX) picked.add(tab);
+        }
+        for (String tab : known.keySet()) if (!order.contains(tab)) order.add(tab);
+        LinearLayout list = new LinearLayout(activity);
+        list.setOrientation(LinearLayout.VERTICAL);
+        list.setPadding(dp(activity, 8), dp(activity, 8), dp(activity, 8), 0);
+        Runnable[] render = new Runnable[1];
+        render[0] = () -> {
+            list.removeAllViews();
+            for (int i = 0; i < order.size(); i++) {
+                String tab = order.get(i);
+                int index = i;
+                LinearLayout row = new LinearLayout(activity);
+                row.setGravity(Gravity.CENTER_VERTICAL);
+                CheckBox box = new CheckBox(activity);
+                box.setText(known.get(tab));
+                box.setTextSize(16);
+                box.setChecked(picked.contains(tab));
+                box.setOnCheckedChangeListener((view, checked) -> {
+                    if (checked && picked.size() >= NavTabs.MAX) {
+                        view.setChecked(false);
+                        Toast.makeText(activity, "Up to 5 tabs", Toast.LENGTH_SHORT).show();
+                    } else if (checked) picked.add(tab);
+                    else picked.remove(tab);
+                });
+                row.addView(box, new LinearLayout.LayoutParams(0, dp(activity, 48), 1));
+                row.addView(moveButton(activity, "↑", "Move " + known.get(tab) + " up", index > 0, () -> {
+                    order.add(index - 1, order.remove(index));
+                    render[0].run();
+                }));
+                row.addView(moveButton(activity, "↓", "Move " + known.get(tab) + " down", index < order.size() - 1, () -> {
+                    order.add(index + 1, order.remove(index));
+                    render[0].run();
+                }));
+                list.addView(row);
+            }
+        };
+        render[0].run();
+        new AlertDialog.Builder(activity)
+            .setTitle("Bottom tabs")
+            .setMessage("Choose up to 5 tabs. Order is left to right.")
+            .setView(list)
+            .setPositiveButton("Save", (dialog, which) -> {
+                List<String> tabs = new ArrayList<>();
+                for (String tab : order) if (picked.contains(tab)) tabs.add(tab);
+                if (tabs.isEmpty() || !Settings.saveTabs(tabs)) {
+                    Toast.makeText(activity, "Select at least one tab", Toast.LENGTH_LONG).show();
+                }
+                done.run();
+            })
+            .setNeutralButton("Default", (dialog, which) -> { Settings.saveTabs(new ArrayList<>()); done.run(); })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    private static View moveButton(Activity activity, String label, String description, boolean enabled, Runnable move) {
+        TextView button = text(activity, label, 20, enabled ? PRIMARY : 0x6143474E, false);
+        button.setGravity(Gravity.CENTER);
+        button.setContentDescription(description);
+        button.setEnabled(enabled);
+        button.setLayoutParams(new LinearLayout.LayoutParams(dp(activity, 48), dp(activity, 48)));
+        button.setOnClickListener(view -> move.run());
+        return button;
     }
 
     private static TextView text(Activity activity, String value, int size, int color, boolean bold) {

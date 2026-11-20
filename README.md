@@ -32,8 +32,8 @@ Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed i
 - **Pay Later:** hides the "with Pay Later" secondary price, the Pay Later/Loans tab and the
   loan and Pay Later entries in Profile. Payment and checkout are unchanged.
 - **Recommendation trays:** optionally hides the Gold, "You may also like" and related category rows in search, the recently viewed category shelf on home, and Similar Products rows in search, category pages and the home feed.
-- **Bottom tabs:** optionally hides Categories, Mall and Video Finds, and can move Account from the
-  home header into the tab bar in a freed slot (all off by default).
+- **Bottom tabs:** pick and reorder up to 5 tabs (Account included), and optionally hide Account in
+  the home header (off by default).
 
 Known limits: the bottom-tab toggles match the English tab names. Sorting only covers products that
 are already loaded; unloaded pages are not fetched in advance.
@@ -63,7 +63,7 @@ response bodies or account data.
 |----------|----------------|-----------|
 | [Hide Pay Later navigation tab](#hide-pay-later-navigation-tab) | Prevents Pay Later from taking the fourth navigation slot without disabling its payment services. |  |
 | [Hide Pay Later secondary price](#hide-pay-later-secondary-price) | Hides the Pay Later secondary price on discovery listings without changing the primary price or checkout. |  |
-| [Hide bottom navigation tabs](#hide-bottom-navigation-tabs) | Adds optional toggles to remove Categories, Mall and Video Finds from the bottom tab bar. |  |
+| [Customize bottom tabs](#customize-bottom-tabs) | Adds settings to pick and reorder up to 5 bottom tabs, including Account, and to hide Account in the home header. |  |
 | [Hide loan and Pay Later profile entries](#hide-loan-and-pay-later-profile-entries) | Removes the three finance entries from the account list without changing repayment or checkout. |  |
 | [Hide reel cards in feeds](#hide-reel-cards-in-feeds) | Removes reel-format catalog cards from discovery feeds while leaving the video tab untouched. |  |
 | [Hide recommendation trays](#hide-recommendation-trays) | Removes the Gold Premium Quality, You may also like and related category rows from search, the recently viewed category shelf from home, and stops Similar Products rows in search, category pages and the home feed. |  |

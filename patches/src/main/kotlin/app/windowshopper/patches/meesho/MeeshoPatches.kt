@@ -198,8 +198,8 @@ private fun com.android.tools.smali.dexlib2.iface.Method.isPopupTrayRequest(): B
 }
 
 val hideNavTabs = feature(
-    "Hide bottom navigation tabs",
-    "Adds optional toggles to remove Categories, Mall and Video Finds from the bottom tab bar and to move Account into it.",
+    "Customize bottom tabs",
+    "Adds settings to pick and reorder up to 5 bottom tabs, including Account, and to hide Account in the home header.",
     "hideNavTabs",
 )
 

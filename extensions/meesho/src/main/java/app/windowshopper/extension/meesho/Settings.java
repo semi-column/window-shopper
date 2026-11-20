@@ -8,8 +8,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import kotlin.jvm.functions.Function0;
 
 public final class Settings {
@@ -34,10 +37,7 @@ public final class Settings {
         RELATED_TRAY(2, "Hide related category trays", "Remove category rows like Storage Drawer Units from search results."),
         RECENT_SHELF(2, "Hide recently viewed categories", "Remove the recently viewed category shelf from the home screen."),
         SIMILAR_TRAY(2, "Hide Similar Products", "Remove the row added after returning from a product in search, categories or the home feed."),
-        NAV_CATEGORIES(2, "Hide Categories tab", "Remove Categories from the bottom tab bar.", false),
-        NAV_MALL(2, "Hide Mall tab", "Remove Mall from the bottom tab bar.", false),
-        NAV_VIDEO(2, "Hide Video Finds tab", "Remove Video Finds from the bottom tab bar.", false),
-        NAV_ACCOUNT(2, "Account in tab bar", "Move Account from the home header to the bottom tab bar. Hide another tab to make room.", false);
+        HEADER_ACCOUNT(2, "Hide Account in header", "Remove the profile button from the home header. Add Account under Bottom tabs.", false);
 
         final int category;
         final String title;
@@ -77,10 +77,7 @@ public final class Settings {
                 case RELATED_TRAY:
                 case RECENT_SHELF:
                 case SIMILAR_TRAY: return Unclutter.hideSearchTrays();
-                case NAV_CATEGORIES:
-                case NAV_MALL:
-                case NAV_VIDEO:
-                case NAV_ACCOUNT: return Unclutter.hideNavTabs();
+                case HEADER_ACCOUNT: return Unclutter.hideNavTabs();
                 default: throw new IllegalStateException("Unknown Morphe feature");
             }
         }
@@ -134,6 +131,39 @@ public final class Settings {
         boolean saved = preferences.edit().putBoolean(feature.name(), enabled).commit();
         if (!saved) Log.e("WindowShopper", "Could not persist setting: " + feature.name());
         return saved;
+    }
+
+    // Ordered tab id names, e.g. "action_first_menu,action_account"; empty keeps Meesho's bar.
+    static List<String> tabs() {
+        String value = preferences == null ? "" : preferences.getString("NAV_TABS", "");
+        return value.isEmpty() ? new ArrayList<>() : new ArrayList<>(Arrays.asList(value.split(",")));
+    }
+
+    static boolean saveTabs(List<String> tabs) {
+        return preferences != null && preferences.edit().putString("NAV_TABS", String.join(",", tabs)).commit();
+    }
+
+    // Tabs seen on the home screen (id name -> title), so the picker can list them.
+    static LinkedHashMap<String, String> knownTabs() {
+        LinkedHashMap<String, String> tabs = new LinkedHashMap<>();
+        String value = preferences == null ? "" : preferences.getString("NAV_KNOWN", "");
+        for (String entry : value.split("\n")) {
+            int split = entry.indexOf('=');
+            if (split > 0) tabs.put(entry.substring(0, split), entry.substring(split + 1));
+        }
+        return tabs;
+    }
+
+    static void rememberTabs(Map<String, String> seen) {
+        LinkedHashMap<String, String> tabs = knownTabs();
+        tabs.putAll(seen);
+        StringBuilder value = new StringBuilder();
+        for (Map.Entry<String, String> tab : tabs.entrySet()) {
+            value.append(tab.getKey()).append('=').append(tab.getValue().replace('\n', ' ')).append('\n');
+        }
+        if (preferences != null && !value.toString().equals(preferences.getString("NAV_KNOWN", ""))) {
+            preferences.edit().putString("NAV_KNOWN", value.toString()).apply();
+        }
     }
 
     public static Object wishlistBanner(Object config) {
