@@ -29,7 +29,7 @@ Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed i
 - **Feed reels:** removes reel cards from feeds; the video tab stays.
 - **Pay Later:** hides the "with Pay Later" secondary price, the Pay Later/Loans tab and the
   loan and Pay Later entries in Profile. Payment and checkout are unchanged.
-- **Search trays:** optionally hides the Gold and "You may also like" rows in search, and Similar Products rows in search, category pages and the home feed.
+- **Search trays:** optionally hides the Gold, "You may also like" and related category rows in search, and Similar Products rows in search, category pages and the home feed.
 - **Bottom tabs:** optionally hides Categories, Mall and Video Finds (off by default).
 
 Known limits: the bottom-tab toggles match the English tab names. Sorting only covers products that
@@ -63,7 +63,7 @@ response bodies or account data.
 | [Hide bottom navigation tabs](#hide-bottom-navigation-tabs) | Adds optional toggles to remove Categories, Mall and Video Finds from the bottom tab bar. |  |
 | [Hide loan and Pay Later profile entries](#hide-loan-and-pay-later-profile-entries) | Removes the three finance entries from the account list without changing repayment or checkout. |  |
 | [Hide reel cards in feeds](#hide-reel-cards-in-feeds) | Removes reel-format catalog cards from discovery feeds while leaving the video tab untouched. |  |
-| [Hide search recommendation trays](#hide-search-recommendation-trays) | Removes the Gold Premium Quality and You may also like rows from search, and Similar Products rows from search, category pages and the home feed. |  |
+| [Hide search recommendation trays](#hide-search-recommendation-trays) | Removes the Gold Premium Quality, You may also like and related category rows from search, and stops Similar Products rows in search, category pages and the home feed. |  |
 | [Hide sponsored listings and order ads](#hide-sponsored-listings-and-order-ads) | Removes active sponsored product records, two identified My Orders finance banners and the Wishlist Pay Later banner, and disables configured order ads. |  |
 | [Product ratings only](#product-ratings-only) | Removes supplier review summaries and supplier-typed catalog ratings. Missing product ratings stay missing. |  |
 | [Sort loaded search results by rating count](#sort-loaded-search-results-by-rating-count) | Adds a button to sort currently loaded search and category products by product rating count. |  |

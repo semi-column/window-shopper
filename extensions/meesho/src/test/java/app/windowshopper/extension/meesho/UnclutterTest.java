@@ -227,21 +227,18 @@ public final class UnclutterTest {
             + "{\"id\":1,\"source\":{\"source_system\":\"DYNAMIC_FEED_IN_FEED\",\"source_meta\":{\"filters\":[{\"field\":\"highASP_enabled\"}]}}},"
             + "{\"id\":2,\"source\":{\"source_system\":\"DYNAMIC_FEED_IN_FEED\",\"source_meta\":{}}},"
             + "{\"id\":3,\"source\":{\"source_system\":\"SUGGESTION_QUERY_FEED_IN_FEED\"}},"
-            + "{\"id\":4,\"source\":{\"source_system\":\"FY_POP_UP\"}}]}";
+            + "{\"id\":4,\"source\":{\"source_system\":\"CLP\"}}]}";
         Unclutter.Filters goldOnly = new Unclutter.Filters(false, false, false, false, false);
         goldOnly.goldTray = true;
         JSONArray trayLeft = new JSONObject(filter(widgetsResponse(trays, "catalog_search_results",
             "prod.meeshoapi.com"), goldOnly).body().string()).getJSONArray("widget_groups");
         assert trayLeft.length() == 3 && trayLeft.getJSONObject(0).getInt("id") == 2;
         Unclutter.Filters allTrays = new Unclutter.Filters(false, false, false, false, false);
-        allTrays.goldTray = allTrays.suggestionTray = allTrays.similarTray = true;
+        allTrays.goldTray = allTrays.suggestionTray = allTrays.relatedTray = true;
         assert new JSONObject(filter(widgetsResponse(trays, "catalog_search_results",
-            "prod.meeshoapi.com"), allTrays).body().string()).getJSONArray("widget_groups").length() == 2;
-        trayLeft = new JSONObject(filter(widgetsResponse(trays, "search_pop_up",
-            "prod.meeshoapi.com"), allTrays).body().string()).getJSONArray("widget_groups");
-        assert trayLeft.length() == 3 && trayLeft.getJSONObject(2).getInt("id") == 3 : trayLeft;
-        assert new JSONObject(filter(widgetsResponse(trays, "fy_pop_up",
-            "prod.meeshoapi.com"), allTrays).body().string()).getJSONArray("widget_groups").length() == 3;
+            "prod.meeshoapi.com"), allTrays).body().string()).getJSONArray("widget_groups").length() == 1;
+        Response popup = widgetsResponse(trays, "search_pop_up", "prod.meeshoapi.com");
+        assert filter(popup, allTrays) == popup;
         Response keptTrays = widgetsResponse(trays, "catalog_search_results", "prod.meeshoapi.com");
         assert filter(keptTrays, new Unclutter.Filters(true, true, true, true, true)) == keptTrays;
         Response invalid = response.newBuilder()

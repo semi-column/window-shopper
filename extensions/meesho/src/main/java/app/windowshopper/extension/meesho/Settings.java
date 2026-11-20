@@ -29,6 +29,7 @@ public final class Settings {
         PROFILE_PAY_LATER(2, "Hide Pay Later in profile", "Hide Pay Later and deferred-payment shortcuts."),
         GOLD_TRAY(2, "Hide Gold tray in search", "Remove the Gold Premium Quality row. Gold cards in results stay."),
         SUGGESTION_TRAY(2, "Hide You may also like", "Remove the suggested searches row from search results."),
+        RELATED_TRAY(2, "Hide related category trays", "Remove category rows like Storage Drawer Units from search results."),
         SIMILAR_TRAY(2, "Hide Similar Products", "Remove the row added after returning from a product in search, categories or the home feed."),
         NAV_CATEGORIES(2, "Hide Categories tab", "Remove Categories from the bottom tab bar.", false),
         NAV_MALL(2, "Hide Mall tab", "Remove Mall from the bottom tab bar.", false),
@@ -67,6 +68,7 @@ public final class Settings {
                 case PROFILE_PAY_LATER: return Unclutter.hideFinanceProfile();
                 case GOLD_TRAY:
                 case SUGGESTION_TRAY:
+                case RELATED_TRAY:
                 case SIMILAR_TRAY: return Unclutter.hideSearchTrays();
                 case NAV_CATEGORIES:
                 case NAV_MALL:
@@ -131,6 +133,8 @@ public final class Settings {
     }
 
     public static boolean hideFinanceTab() { return enabled(Feature.FINANCE_TAB); }
+
+    public static boolean hideSimilarTray() { return enabled(Feature.SIMILAR_TRAY); }
 
     public static boolean addPayLaterProfile(List<Object> list, Object item) {
         return !enabled(Feature.PROFILE_PAY_LATER) && list.add(item);

@@ -165,11 +165,37 @@ val hidePayLaterPrice = feature(
     "hidePayLaterPrice",
 )
 
-val hideSearchTrays = feature(
-    "Hide search recommendation trays",
-    "Removes the Gold Premium Quality and You may also like rows from search, and Similar Products rows from search, category pages and the home feed.",
-    "hideSearchTrays",
-)
+val hideSearchTrays = bytecodePatch(
+    name = "Hide search recommendation trays",
+    description = "Removes the Gold Premium Quality, You may also like and related category rows from search, and stops Similar Products rows in search, category pages and the home feed.",
+) {
+    compatibleWith(MEESHO)
+    dependsOn(responseHook)
+    execute {
+        enableFeature("hideSearchTrays")
+        // The popup request inserts a placeholder row and scrolls to it before any response arrives.
+        val owners = mutableListOf<String>()
+        classDefForEach { classDef ->
+            if (classDef.methods.any { it.isPopupTrayRequest() }) owners += classDef.type
+        }
+        check(owners.size == 1) { "Expected one Similar Products request owner, found ${owners.size}" }
+        val method = mutableClassDefBy(owners.single()).methods.single { it.isPopupTrayRequest() }
+        method.addInstructionsWithLabels(0, """
+            invoke-static {}, $SETTINGS->hideSimilarTray()Z
+            move-result v0
+            if-eqz v0, :original
+            return-void
+        """.trimIndent(), ExternalLabel("original", method.implementation!!.instructions.first()))
+    }
+}
+
+private fun com.android.tools.smali.dexlib2.iface.Method.isPopupTrayRequest(): Boolean {
+    if (returnType != "V") return false
+    val strings = implementation?.instructions?.mapNotNull {
+        ((it as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.StringReference)?.string
+    } ?: return false
+    return "In Feed Widget Request" in strings && "FY_POP_UP" in strings
+}
 
 val hideNavTabs = feature(
     "Hide bottom navigation tabs",
