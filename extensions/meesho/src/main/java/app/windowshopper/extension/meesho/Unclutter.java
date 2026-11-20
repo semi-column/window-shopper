@@ -40,6 +40,7 @@ public final class Unclutter {
         flags.orderFinance = Settings.enabled(Settings.Feature.ORDER_FINANCE);
         flags.confirmationAd = Settings.enabled(Settings.Feature.CONFIRMATION_AD);
         flags.wishlistAd = Settings.enabled(Settings.Feature.WISHLIST_AD);
+        flags.promoPopup = Settings.enabled(Settings.Feature.PROMO_POPUP);
         flags.goldTray = Settings.enabled(Settings.Feature.GOLD_TRAY);
         flags.suggestionTray = Settings.enabled(Settings.Feature.SUGGESTION_TRAY);
         flags.relatedTray = Settings.enabled(Settings.Feature.RELATED_TRAY);
@@ -49,7 +50,7 @@ public final class Unclutter {
 
     static final class Filters {
         final boolean ads, ratings, sort, videos, hidePrice;
-        boolean orderAds, orderFinance, confirmationAd, wishlistAd, goldTray, suggestionTray, relatedTray, recentShelf;
+        boolean orderAds, orderFinance, confirmationAd, wishlistAd, promoPopup, goldTray, suggestionTray, relatedTray, recentShelf;
 
         Filters(boolean ads, boolean ratings, boolean sort, boolean videos, boolean hidePrice) {
             this.ads = ads;
@@ -57,7 +58,7 @@ public final class Unclutter {
             this.sort = sort;
             this.videos = videos;
             this.hidePrice = hidePrice;
-            orderAds = orderFinance = confirmationAd = wishlistAd = ads;
+            orderAds = orderFinance = confirmationAd = wishlistAd = promoPopup = ads;
         }
     }
 
@@ -67,6 +68,12 @@ public final class Unclutter {
         boolean meesho = host.matches("prod[1-4]?\\.meeshoapi\\.com");
         boolean widgets = meesho && "/api/1.0/widget-groups/fetch".equals(path);
         boolean home = flags.recentShelf && meesho && "/api/1.0/home-page/fetch".equals(path);
+        if (flags.promoPopup && meesho && path.matches("/api/[0-9.]+/inapp/popup") && response.isSuccessful()) {
+            ResponseBody popup = response.body();
+            if (popup != null) popup.close();
+            return response.newBuilder().removeHeader("Content-Length")
+                .body(ResponseBody.create(MediaType.get("application/json"), "{}")).build();
+        }
         Object screen = widgets ? screenName(response) : null;
         boolean orderBanners = flags.orderFinance && "orders".equals(screen);
         boolean wishlistBanners = flags.wishlistAd && "wishlist".equals(screen);

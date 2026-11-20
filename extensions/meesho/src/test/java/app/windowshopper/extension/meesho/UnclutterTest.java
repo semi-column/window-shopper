@@ -223,6 +223,10 @@ public final class UnclutterTest {
         keepWishlist.wishlistAd = false;
         Response keptWishlist = widgetsResponse(wishlist, "wishlist", "prod.meeshoapi.com");
         assert filter(keptWishlist, keepWishlist) == keptWishlist;
+        Request popupRequest = new Request.Builder().url("https://prod.meeshoapi.com/api/1.0/inapp/popup").build();
+        Response promo = new Response.Builder().request(popupRequest).protocol(Protocol.HTTP_1_1).code(200).message("OK")
+            .body(ResponseBody.create(MediaType.get("application/json"), "{\"inapp_popup\":{\"popup_type\":\"Advanced_Floating\"}}")).build();
+        assert filter(promo, true).body().string().equals("{}");
         String trays = "{\"widget_groups\":["
             + "{\"id\":1,\"source\":{\"source_system\":\"DYNAMIC_FEED_IN_FEED\",\"source_meta\":{\"filters\":[{\"field\":\"highASP_enabled\"}]}}},"
             + "{\"id\":2,\"source\":{\"source_system\":\"DYNAMIC_FEED_IN_FEED\",\"source_meta\":{}}},"

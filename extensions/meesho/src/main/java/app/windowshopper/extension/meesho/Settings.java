@@ -19,6 +19,7 @@ public final class Settings {
         ORDER_FINANCE(0, "Loan banners in My Orders", "Hide identified promotions; keep repayment-marked banners."),
         CONFIRMATION_AD(0, "Pay Later confirmation banner", "Hide the configured Pay Later promotion after an order."),
         WISHLIST_AD(0, "Wishlist Pay Later banner", "Hide the buy now, pay next month banner in Wishlist."),
+        PROMO_POPUP(0, "Floating promotions", "Hide sale popups and floating campaign ads like Locked Deals."),
         PAY_LATER_PRICE(0, "Pay Later price line", "Hide the secondary price; keep the actual product price."),
         SHOP_RATINGS(1, "Hide shop ratings", "Keep product ratings only. Missing ratings stay missing."),
         AUTO_SORT(1, "Automatic page sorting", "Sort each new search page by product rating count."),
@@ -58,7 +59,8 @@ public final class Settings {
                 case ORDER_ADS:
                 case ORDER_FINANCE:
                 case CONFIRMATION_AD:
-                case WISHLIST_AD: return Unclutter.hideAds();
+                case WISHLIST_AD:
+                case PROMO_POPUP: return Unclutter.hideAds();
                 case PAY_LATER_PRICE: return Unclutter.hidePayLaterPrice();
                 case SHOP_RATINGS: return Unclutter.productRatings();
                 case AUTO_SORT: return Unclutter.sortRatings();

@@ -22,7 +22,8 @@ Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed i
 ## What the Meesho patches do
 
 - **Ads:** removes sponsored products, the order ad widgets, the loan banners in My Orders
-  (repayment banners are kept), the Pay Later banner after ordering and the Wishlist Pay Later banner.
+  (repayment banners are kept), the Pay Later banner after ordering, the Wishlist Pay Later banner
+  and floating sale promotions like Locked Deals.
 - **Product ratings only:** hides shop (supplier) ratings, so only the product's own rating shows.
 - **Sort by rating count:** sorts each search page by rating count, and adds a floating
   **Sort loaded** button on search and category pages that re-sorts everything loaded so far.
@@ -64,7 +65,7 @@ response bodies or account data.
 | [Hide loan and Pay Later profile entries](#hide-loan-and-pay-later-profile-entries) | Removes the three finance entries from the account list without changing repayment or checkout. |  |
 | [Hide reel cards in feeds](#hide-reel-cards-in-feeds) | Removes reel-format catalog cards from discovery feeds while leaving the video tab untouched. |  |
 | [Hide recommendation trays](#hide-recommendation-trays) | Removes the Gold Premium Quality, You may also like and related category rows from search, the recently viewed category shelf from home, and stops Similar Products rows in search, category pages and the home feed. |  |
-| [Hide sponsored listings and order ads](#hide-sponsored-listings-and-order-ads) | Removes active sponsored product records, two identified My Orders finance banners and the Wishlist Pay Later banner, and disables configured order ads. |  |
+| [Hide sponsored listings and order ads](#hide-sponsored-listings-and-order-ads) | Removes active sponsored product records, two identified My Orders finance banners the Wishlist Pay Later banner and floating promotion popups, and disables configured order ads. |  |
 | [Product ratings only](#product-ratings-only) | Removes supplier review summaries and supplier-typed catalog ratings. Missing product ratings stay missing. |  |
 | [Sort loaded search results by rating count](#sort-loaded-search-results-by-rating-count) | Adds a button to sort currently loaded search and category products by product rating count. |  |
 | [Sort search pages by rating count](#sort-search-pages-by-rating-count) | Sorts each returned search page by product rating count, highest first. Does not globally reorder unloaded pages. |  |
