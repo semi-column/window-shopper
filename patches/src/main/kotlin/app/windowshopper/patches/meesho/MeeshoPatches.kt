@@ -166,8 +166,8 @@ val hidePayLaterPrice = feature(
 )
 
 val hideSearchTrays = bytecodePatch(
-    name = "Hide search recommendation trays",
-    description = "Removes the Gold Premium Quality, You may also like and related category rows from search, and stops Similar Products rows in search, category pages and the home feed.",
+    name = "Hide recommendation trays",
+    description = "Removes the Gold Premium Quality, You may also like and related category rows from search, the recently viewed category shelf from home, and stops Similar Products rows in search, category pages and the home feed.",
 ) {
     compatibleWith(MEESHO)
     dependsOn(responseHook)

@@ -30,6 +30,7 @@ public final class Settings {
         GOLD_TRAY(2, "Hide Gold tray in search", "Remove the Gold Premium Quality row. Gold cards in results stay."),
         SUGGESTION_TRAY(2, "Hide You may also like", "Remove the suggested searches row from search results."),
         RELATED_TRAY(2, "Hide related category trays", "Remove category rows like Storage Drawer Units from search results."),
+        RECENT_SHELF(2, "Hide recently viewed categories", "Remove the recently viewed category shelf from the home screen."),
         SIMILAR_TRAY(2, "Hide Similar Products", "Remove the row added after returning from a product in search, categories or the home feed."),
         NAV_CATEGORIES(2, "Hide Categories tab", "Remove Categories from the bottom tab bar.", false),
         NAV_MALL(2, "Hide Mall tab", "Remove Mall from the bottom tab bar.", false),
@@ -69,6 +70,7 @@ public final class Settings {
                 case GOLD_TRAY:
                 case SUGGESTION_TRAY:
                 case RELATED_TRAY:
+                case RECENT_SHELF:
                 case SIMILAR_TRAY: return Unclutter.hideSearchTrays();
                 case NAV_CATEGORIES:
                 case NAV_MALL:

@@ -43,12 +43,13 @@ public final class Unclutter {
         flags.goldTray = Settings.enabled(Settings.Feature.GOLD_TRAY);
         flags.suggestionTray = Settings.enabled(Settings.Feature.SUGGESTION_TRAY);
         flags.relatedTray = Settings.enabled(Settings.Feature.RELATED_TRAY);
+        flags.recentShelf = Settings.enabled(Settings.Feature.RECENT_SHELF);
         return filter(response, flags);
     }
 
     static final class Filters {
         final boolean ads, ratings, sort, videos, hidePrice;
-        boolean orderAds, orderFinance, confirmationAd, wishlistAd, goldTray, suggestionTray, relatedTray;
+        boolean orderAds, orderFinance, confirmationAd, wishlistAd, goldTray, suggestionTray, relatedTray, recentShelf;
 
         Filters(boolean ads, boolean ratings, boolean sort, boolean videos, boolean hidePrice) {
             this.ads = ads;
@@ -63,13 +64,14 @@ public final class Unclutter {
     static Response filter(Response response, Filters flags) {
         String host = response.request().url().host();
         String path = response.request().url().encodedPath();
-        boolean widgets = host.matches("prod[1-4]?\\.meeshoapi\\.com")
-            && "/api/1.0/widget-groups/fetch".equals(path);
+        boolean meesho = host.matches("prod[1-4]?\\.meeshoapi\\.com");
+        boolean widgets = meesho && "/api/1.0/widget-groups/fetch".equals(path);
+        boolean home = flags.recentShelf && meesho && "/api/1.0/home-page/fetch".equals(path);
         Object screen = widgets ? screenName(response) : null;
         boolean orderBanners = flags.orderFinance && "orders".equals(screen);
         boolean wishlistBanners = flags.wishlistAd && "wishlist".equals(screen);
         boolean searchTrays = (flags.goldTray || flags.suggestionTray || flags.relatedTray)
-            && "catalog_search_results".equals(screen);
+            && "catalog_search_results".equals(screen) || home;
         if ((!isTarget(host, path) && !orderBanners && !wishlistBanners && !searchTrays) || !response.isSuccessful()) return response;
         ResponseBody body = response.body();
         if (body == null) return response;
@@ -89,7 +91,7 @@ public final class Unclutter {
             String original = peek.string();
             String filtered = orderBanners ? removeOrderBanners(original)
                 : wishlistBanners ? removeWishlistBanners(original)
-                : searchTrays ? removeSearchTrays(original, flags)
+                : searchTrays ? removeSearchTrays(original, home, flags)
                 : transform(original, path, flags);
             if (filtered.equals(original)) return response;
             ResponseBody replacement = ResponseBody.create(type, filtered);
@@ -132,7 +134,7 @@ public final class Unclutter {
         return changed ? root.toString() : text;
     }
 
-    static String removeSearchTrays(String text, Filters flags) throws JSONException {
+    static String removeSearchTrays(String text, boolean home, Filters flags) throws JSONException {
         JSONObject root = new JSONObject(text);
         JSONArray groups = root.optJSONArray("widget_groups");
         if (groups == null) return text;
@@ -144,7 +146,7 @@ public final class Unclutter {
             String system = source.optString("source_system");
             boolean gold = "DYNAMIC_FEED_IN_FEED".equals(system)
                 && String.valueOf(source.opt("source_meta")).contains("highASP_enabled");
-            if (flags.goldTray && gold || flags.suggestionTray && "SUGGESTION_QUERY_FEED_IN_FEED".equals(system)
+            if (home ? "RECENTLY_VIEWED_NEW".equals(system) : flags.goldTray && gold || flags.suggestionTray && "SUGGESTION_QUERY_FEED_IN_FEED".equals(system)
                     || flags.relatedTray && "CLP".equals(system)) {
                 groups.remove(i);
                 changed = true;

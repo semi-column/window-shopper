@@ -237,6 +237,16 @@ public final class UnclutterTest {
         allTrays.goldTray = allTrays.suggestionTray = allTrays.relatedTray = true;
         assert new JSONObject(filter(widgetsResponse(trays, "catalog_search_results",
             "prod.meeshoapi.com"), allTrays).body().string()).getJSONArray("widget_groups").length() == 1;
+        String home = "{\"widget_groups\":[{\"id\":1,\"source\":{\"source_system\":\"ISO_IOP\"}},"
+            + "{\"id\":2,\"source\":{\"source_system\":\"RECENTLY_VIEWED_NEW\"}},{\"id\":3}]}";
+        Unclutter.Filters shelf = new Unclutter.Filters(false, false, false, false, false);
+        shelf.recentShelf = true;
+        Response homePage = new Response.Builder()
+            .request(new Request.Builder().url("https://prod.meeshoapi.com/api/1.0/home-page/fetch").build())
+            .protocol(Protocol.HTTP_1_1).code(200).message("OK")
+            .body(ResponseBody.create(MediaType.get("application/json"), home)).build();
+        JSONArray homeLeft = new JSONObject(filter(homePage, shelf).body().string()).getJSONArray("widget_groups");
+        assert homeLeft.length() == 2 && homeLeft.getJSONObject(1).getInt("id") == 3 : homeLeft;
         Response popup = widgetsResponse(trays, "search_pop_up", "prod.meeshoapi.com");
         assert filter(popup, allTrays) == popup;
         Response keptTrays = widgetsResponse(trays, "catalog_search_results", "prod.meeshoapi.com");
