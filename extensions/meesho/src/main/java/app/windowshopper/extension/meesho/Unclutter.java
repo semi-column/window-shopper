@@ -31,6 +31,7 @@ public final class Unclutter {
     public static boolean hideFinanceProfile() { return false; }
     public static boolean hideSearchTrays() { return false; }
     public static boolean hideNavTabs() { return false; }
+    public static boolean hideReferEarn() { return false; }
 
     public static Response filter(Response response) {
         Filters flags = new Filters(Settings.enabled(Settings.Feature.SPONSORED),
@@ -41,6 +42,7 @@ public final class Unclutter {
         flags.confirmationAd = Settings.enabled(Settings.Feature.CONFIRMATION_AD);
         flags.wishlistAd = Settings.enabled(Settings.Feature.WISHLIST_AD);
         flags.promoPopup = Settings.enabled(Settings.Feature.PROMO_POPUP);
+        flags.referEarn = Settings.enabled(Settings.Feature.REFER_EARN);
         flags.goldTray = Settings.enabled(Settings.Feature.GOLD_TRAY);
         flags.suggestionTray = Settings.enabled(Settings.Feature.SUGGESTION_TRAY);
         flags.relatedTray = Settings.enabled(Settings.Feature.RELATED_TRAY);
@@ -50,7 +52,7 @@ public final class Unclutter {
 
     static final class Filters {
         final boolean ads, ratings, sort, videos, hidePrice;
-        boolean orderAds, orderFinance, confirmationAd, wishlistAd, promoPopup, goldTray, suggestionTray, relatedTray, recentShelf;
+        boolean orderAds, orderFinance, confirmationAd, wishlistAd, promoPopup, referEarn, goldTray, suggestionTray, relatedTray, recentShelf;
 
         Filters(boolean ads, boolean ratings, boolean sort, boolean videos, boolean hidePrice) {
             this.ads = ads;
@@ -190,7 +192,7 @@ public final class Unclutter {
 
     static boolean isTarget(String host, String path) {
         if (!host.matches("prod[1-4]?\\.meeshoapi\\.com")) return false;
-        return path.matches("/api/[0-9.]+/(?:anonymous/)?(?:config(?:/.*)?|feed(?:/.*)?|"
+        return path.matches("/api/[0-9.]+/(?:anonymous/)?(?:configs?(?:/.*)?|feed(?:/.*)?|"
             + "search/products|clp|plp|dynamic-filters-feed|meri-shop/feed|"
             + "for-you|deals-for-you|catalogs(?:/.*)?|catalog/products|"
             + "collections/[^/]+|reco(?:/.*)?|product(?:/static|/dynamic)?)");
@@ -198,7 +200,7 @@ public final class Unclutter {
 
     static String transform(String text, String path, Filters flags) throws JSONException {
         if (!flags.ads && !flags.ratings && !flags.sort && !flags.videos && !flags.hidePrice
-                && !flags.orderAds && !flags.confirmationAd) return text;
+                && !flags.orderAds && !flags.confirmationAd && !flags.referEarn) return text;
         JSONObject root = new JSONObject(text);
         boolean feed = path.matches("/api/[0-9.]+/(?:anonymous/)?(?:for-you|feed(?:/.*)?|"
             + "clp|plp|dynamic-filters-feed|meri-shop/feed)");
@@ -234,6 +236,9 @@ public final class Unclutter {
                 config.put("enable_widgets_order_confirmation", false);
                 config.put("enable_widgets_order_details", false);
                 config.put("enable_widgets_orders_listing", false);
+            }
+            if (flags.referEarn && "refer_and_earn".equals(key) && value instanceof JSONObject) {
+                ((JSONObject) value).put("enabled", false).put("enabled_on_hp", false);
             }
             if (flags.confirmationAd && "ocp_pay_later_ad_banner".equals(key) && value instanceof JSONObject) {
                 ((JSONObject) value).put("enabled", false);

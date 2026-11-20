@@ -24,6 +24,7 @@ Tap **Apply & reopen Meesho** to rebuild the tabs and profile; you stay signed i
 - **Ads:** removes sponsored products, the order ad widgets, the loan banners in My Orders
   (repayment banners are kept), the Pay Later banner after ordering, the Wishlist Pay Later banner
   and floating sale promotions like Locked Deals.
+- **Refer and Earn:** hides the referral shortcut on the home header and account screen.
 - **Product ratings only:** hides shop (supplier) ratings, so only the product's own rating shows.
 - **Sort by rating count:** sorts each search page by rating count, and adds a floating
   **Sort loaded** button on search and category pages that re-sorts everything loaded so far.

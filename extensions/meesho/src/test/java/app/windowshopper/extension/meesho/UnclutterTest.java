@@ -227,6 +227,11 @@ public final class UnclutterTest {
         Response promo = new Response.Builder().request(popupRequest).protocol(Protocol.HTTP_1_1).code(200).message("OK")
             .body(ResponseBody.create(MediaType.get("application/json"), "{\"inapp_popup\":{\"popup_type\":\"Advanced_Floating\"}}")).build();
         assert filter(promo, true).body().string().equals("{}");
+        Unclutter.Filters refer = new Unclutter.Filters(false, false, false, false, false);
+        refer.referEarn = true;
+        JSONObject rae = new JSONObject(transform("{\"platform\":{\"refer_and_earn\":{\"enabled\":true,\"enabled_on_hp\":true}}}",
+            "/api/2.0/configs/user", refer)).getJSONObject("platform").getJSONObject("refer_and_earn");
+        assert !rae.getBoolean("enabled") && !rae.getBoolean("enabled_on_hp");
         String trays = "{\"widget_groups\":["
             + "{\"id\":1,\"source\":{\"source_system\":\"DYNAMIC_FEED_IN_FEED\",\"source_meta\":{\"filters\":[{\"field\":\"highASP_enabled\"}]}}},"
             + "{\"id\":2,\"source\":{\"source_system\":\"DYNAMIC_FEED_IN_FEED\",\"source_meta\":{}}},"

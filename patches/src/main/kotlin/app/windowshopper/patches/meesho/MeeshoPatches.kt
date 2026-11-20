@@ -203,6 +203,12 @@ val hideNavTabs = feature(
     "hideNavTabs",
 )
 
+val hideReferEarn = feature(
+    "Hide Refer and Earn",
+    "Removes Refer and Earn from the home header and account screen.",
+    "hideReferEarn",
+)
+
 val sortLoadedResults = bytecodePatch(
     name = "Sort loaded search results by rating count",
     description = "Adds a button to sort currently loaded search and category products by product rating count.",

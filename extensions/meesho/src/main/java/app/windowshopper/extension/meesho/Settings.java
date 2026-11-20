@@ -27,6 +27,7 @@ public final class Settings {
         FEED_VIDEOS(2, "Hide videos in feeds", "Remove reel cards from feeds. Keep the video tab."),
         FINANCE_TAB(2, "Hide Loans / Pay Later tab", "Free the finance navigation slot for Meesho's alternative tab."),
         PROFILE_LOANS(2, "Hide Loans in profile", "Hide the Loans shortcut without changing payment services."),
+        REFER_EARN(2, "Hide Refer and Earn", "Remove Refer and Earn from the home header and account screen."),
         PROFILE_PAY_LATER(2, "Hide Pay Later in profile", "Hide Pay Later and deferred-payment shortcuts."),
         GOLD_TRAY(2, "Hide Gold tray in search", "Remove the Gold Premium Quality row. Gold cards in results stay."),
         SUGGESTION_TRAY(2, "Hide You may also like", "Remove the suggested searches row from search results."),
@@ -69,6 +70,7 @@ public final class Settings {
                 case FINANCE_TAB: return Unclutter.hideFinanceTab();
                 case PROFILE_LOANS:
                 case PROFILE_PAY_LATER: return Unclutter.hideFinanceProfile();
+                case REFER_EARN: return Unclutter.hideReferEarn();
                 case GOLD_TRAY:
                 case SUGGESTION_TRAY:
                 case RELATED_TRAY:
